@@ -203,7 +203,9 @@ export function GroupAdventureManagement({
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Group Adventure</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {adventureRequest.name || 'Group Adventure'}
+                </h1>
                 <p className="text-gray-600">Manage your adventure group</p>
               </div>
             </div>
@@ -283,9 +285,16 @@ export function GroupAdventureManagement({
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-gray-900 truncate">
-                                {member.name}
-                              </h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-gray-900 truncate">
+                                  {member.name}
+                                </h3>
+                                {member.id === adventureRequest.userId && (
+                                  <Badge variant="default" className="text-xs bg-blue-500">
+                                    Host
+                                  </Badge>
+                                )}
+                              </div>
                               <p className="text-sm text-gray-500">
                                 Budget: ${member.budget?.toLocaleString() || 'Not set'}
                               </p>

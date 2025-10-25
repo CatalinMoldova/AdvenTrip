@@ -167,14 +167,27 @@ export default function App() {
         ]
       };
       
+      // Update the adventure request in the list
       setAdventureRequests(prev => 
         prev.map(req => req.id === adventureId ? updatedRequest : req)
       );
       
-      setSelectedGroupAdventure(updatedRequest);
-      setCurrentScreen('group-management');
+      // Take user to main app and show the group adventure
+      setCurrentScreen('main');
+      setActiveTab('adventures');
       
-      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`);
+      // Show success message with action button
+      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`, {
+        description: 'You can now access the full app and your group adventure',
+        duration: 5000,
+        action: {
+          label: 'View Group',
+          onClick: () => {
+            setSelectedGroupAdventure(updatedRequest);
+            setCurrentScreen('group-management');
+          }
+        }
+      });
     }
   };
 

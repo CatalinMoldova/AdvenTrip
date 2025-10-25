@@ -197,6 +197,9 @@ export function AdventuresTab({
                           <h3 className="text-black mb-1">{folder.name}</h3>
                           <p className="text-xs text-black/60">
                             {folder.mode === 'group' ? 'Group Adventure' : 'Solo Adventure'}
+                            {folder.mode === 'group' && folder.members?.some(m => m.id === user?.id) && (
+                              <span className="ml-2 text-green-600 font-medium">• You're in this group</span>
+                            )}
                           </p>
                         </div>
                       </div>
