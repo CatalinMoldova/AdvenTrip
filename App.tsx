@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, AdventureRequest, Adventure } from './types';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { FeedTab } from './components/FeedTab';
@@ -6,11 +6,12 @@ import { AdventuresTab } from './components/AdventuresTab';
 import { ProfileTab } from './components/ProfileTab';
 import { BottomTabNavigation } from './components/BottomTabNavigation';
 import { CreateAdventureWizard } from './components/CreateAdventureWizard';
+import { GroupJoinScreen } from './components/GroupJoinScreen';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 import { mockAdventures } from './data/mockData';
 
-type Screen = 'onboarding' | 'main';
+type Screen = 'onboarding' | 'main' | 'group-join';
 type Tab = 'feed' | 'adventures' | 'profile';
 
 interface SavedTrip {
@@ -26,7 +27,35 @@ export default function App() {
   const [savedTrips, setSavedTrips] = useState<SavedTrip[]>([]);
   const [discardedTrips, setDiscardedTrips] = useState<Adventure[]>([]);
   const [showCreateWizard, setShowCreateWizard] = useState(false);
+  const [groupInviteId, setGroupInviteId] = useState<string | null>(null);
 
+  // Handle routing based on URL
+  useEffect(() => {
+    const handleRoute = () => {
+      const hash = window.location.hash;
+      const path = window.location.pathname;
+      
+      // Check for group join URL pattern: /join/{inviteId}
+      const joinMatch = path.match(/\/join\/(.+)/);
+      if (joinMatch) {
+        const inviteId = joinMatch[1];
+        setGroupInviteId(inviteId);
+        setCurrentScreen('group-join');
+        return;
+      }
+      
+      // Default routing
+      if (user) {
+        setCurrentScreen('main');
+      } else {
+        setCurrentScreen('onboarding');
+      }
+    };
+
+    handleRoute();
+    window.addEventListener('popstate', handleRoute);
+    return () => window.removeEventListener('popstate', handleRoute);
+  }, [user]);
 
   const handleOnboardingComplete = (newUser: User) => {
     setUser(newUser);
@@ -71,6 +100,37 @@ export default function App() {
     setUser(updatedUser);
   };
 
+  const handleGroupJoin = (memberName: string) => {
+    if (groupInviteId) {
+      // Find the adventure request by invite ID
+      const adventureRequest = adventureRequests.find(req => req.id === groupInviteId);
+      
+      if (adventureRequest) {
+        // Add the new member to the group
+        const updatedRequest = {
+          ...adventureRequest,
+          groupMembers: [
+            ...(adventureRequest.groupMembers || []),
+            {
+              id: Math.random().toString(36).substring(7),
+              name: memberName,
+              email: '',
+              avatar: '',
+              budget: 1000,
+              preferences: []
+            }
+          ]
+        };
+        
+        setAdventureRequests(prev => 
+          prev.map(req => req.id === groupInviteId ? updatedRequest : req)
+        );
+        
+        toast.success(`${memberName} joined the group! 🎉`);
+      }
+    }
+  };
+
   const handleSaveTrip = (adventure: Adventure, rating: number) => {
     setSavedTrips(prev => {
       // Check if already saved
@@ -94,6 +154,13 @@ export default function App() {
     <div className="min-h-screen bg-white">
       {currentScreen === 'onboarding' && (
         <OnboardingScreen onComplete={handleOnboardingComplete} />
+      )}
+
+      {currentScreen === 'group-join' && groupInviteId && (
+        <GroupJoinScreen 
+          inviteId={groupInviteId} 
+          onJoin={handleGroupJoin} 
+        />
       )}
 
       {currentScreen === 'main' && user && (

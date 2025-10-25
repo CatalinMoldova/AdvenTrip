@@ -81,7 +81,8 @@ export const CreateAdventureModal: React.FC<CreateAdventureModalProps> = ({
   };
 
   const generateInviteLink = () => {
-    const link = `https://nomadiq.app/invite/${Math.random().toString(36).substr(2, 9)}`;
+    const linkId = Math.random().toString(36).substring(7);
+    const link = `${window.location.origin}/join/${linkId}`;
     setInviteLink(link);
     navigator.clipboard.writeText(link);
     toast.success('Invite link copied to clipboard!');
