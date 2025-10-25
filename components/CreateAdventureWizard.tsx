@@ -120,6 +120,22 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       const linkId = Math.random().toString(36).substring(7);
       const link = `${window.location.origin}/join/${linkId}`;
       setInviteLink(link);
+      
+      // Create group adventure request
+      const request: AdventureRequest = {
+        id: linkId, // Use the same ID as the invite link
+        userId: user?.id || '1',
+        mode: 'group',
+        numberOfDays: parseInt(duration),
+        activities: activities.map(a => a.replace(/[^\w\s]/g, '').trim()),
+        customActivities: [],
+        transportation: transport,
+        inviteLink: link,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      
+      onCreateAdventure(request);
     } else {
       // Create adventure immediately for individual mode
       const request: AdventureRequest = {
