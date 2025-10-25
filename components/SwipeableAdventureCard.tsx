@@ -196,7 +196,7 @@ export function SwipeableAdventureCard({
                       className="absolute inset-0"
                     />
                     
-                    {/* Particle effect for active image */}
+                    {/* Bubble effect for active image */}
                     {isActive && (
                       <motion.div
                         initial={{ opacity: 0 }}
@@ -205,8 +205,8 @@ export function SwipeableAdventureCard({
                         transition={{ duration: 0.5, delay: 0.3 }}
                         className="absolute inset-0 pointer-events-none"
                       >
-                        {/* Floating particles */}
-                        {[...Array(6)].map((_, i) => (
+                        {/* Floating bubbles */}
+                        {[...Array(8)].map((_, i) => (
                           <motion.div
                             key={i}
                             initial={{ 
@@ -216,41 +216,68 @@ export function SwipeableAdventureCard({
                               opacity: 0
                             }}
                             animate={{ 
-                              scale: [0, 1, 0],
+                              scale: [0, Math.random() * 1.5 + 0.8, 0],
                               opacity: [0, 0.8, 0],
-                              y: [null, '-20px']
+                              y: [null, '-30px'],
+                              x: [null, (Math.random() - 0.5) * 40 + '%']
                             }}
                             transition={{
-                              duration: 2,
+                              duration: 2.5,
                               delay: i * 0.2,
                               repeat: Infinity,
-                              repeatDelay: 3
+                              repeatDelay: 4,
+                              ease: "easeOut"
                             }}
-                            className="absolute w-2 h-2 bg-white/60 rounded-full"
+                            className="absolute rounded-full bg-white/60 backdrop-blur-sm"
+                            style={{
+                              width: Math.random() * 30 + 20 + 'px',
+                              height: Math.random() * 30 + 20 + 'px',
+                            }}
                           />
                         ))}
                       </motion.div>
                     )}
                     
-                    {/* Slide-in shimmer effect */}
+                    {/* Floating bubbles flow effect */}
                     {isActive && (
                       <motion.div
-                        initial={{ x: '-100%', rotate: -45 }}
-                        animate={{ x: '100%', rotate: -45 }}
-                        transition={{
-                          duration: 0.8,
-                          ease: "easeInOut",
-                          delay: 0.4
-                        }}
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          background: 'linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent)',
-                          width: '200%',
-                          height: '200%',
-                          top: '-50%',
-                          left: '-50%'
-                        }}
-                      />
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
+                        className="absolute inset-0 pointer-events-none overflow-hidden"
+                      >
+                        {/* Flowing bubbles */}
+                        {[...Array(15)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ 
+                              x: '-10%',
+                              y: Math.random() * 100 + '%',
+                              scale: 0,
+                              opacity: 0
+                            }}
+                            animate={{ 
+                              x: '110%',
+                              y: [null, (Math.random() - 0.5) * 30 + '%'],
+                              scale: [0, Math.random() * 1.2 + 0.6, 0],
+                              opacity: [0, 0.7, 0],
+                            }}
+                            transition={{
+                              duration: 3,
+                              delay: i * 0.15,
+                              ease: "easeInOut",
+                              repeat: Infinity,
+                              repeatDelay: 5
+                            }}
+                            className="absolute rounded-full bg-white/50 backdrop-blur-sm"
+                            style={{
+                              width: Math.random() * 25 + 15 + 'px',
+                              height: Math.random() * 25 + 15 + 'px',
+                            }}
+                          />
+                        ))}
+                      </motion.div>
                     )}
                   </motion.div>
                 );

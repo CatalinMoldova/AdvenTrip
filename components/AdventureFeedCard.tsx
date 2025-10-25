@@ -312,21 +312,46 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
                           className="absolute inset-0"
                         />
                         
-                        {/* Shimmer effect for incoming images */}
+                        {/* Floating bubbles effect for incoming images */}
                         {isActive && (
                           <motion.div
-                            initial={{ x: '-100%' }}
-                            animate={{ x: '100%' }}
-                            transition={{
-                              duration: 0.6,
-                              ease: "easeInOut",
-                              delay: 0.2
-                            }}
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                            style={{
-                              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)'
-                            }}
-                          />
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="absolute inset-0 pointer-events-none overflow-hidden"
+                          >
+                            {/* Floating bubbles */}
+                            {[...Array(12)].map((_, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ 
+                                  x: Math.random() * 100 + '%',
+                                  y: '100%',
+                                  scale: 0,
+                                  opacity: 0
+                                }}
+                                animate={{ 
+                                  y: '-20%',
+                                  scale: [0, Math.random() * 0.8 + 0.4, 0],
+                                  opacity: [0, 0.6, 0],
+                                  x: [null, (Math.random() - 0.5) * 50 + '%']
+                                }}
+                                transition={{
+                                  duration: 2.5,
+                                  delay: i * 0.1,
+                                  ease: "easeOut",
+                                  repeat: Infinity,
+                                  repeatDelay: 4
+                                }}
+                                className="absolute rounded-full bg-white/40 backdrop-blur-sm"
+                                style={{
+                                  width: Math.random() * 20 + 10 + 'px',
+                                  height: Math.random() * 20 + 10 + 'px',
+                                }}
+                              />
+                            ))}
+                          </motion.div>
                         )}
                       </motion.div>
                     );
