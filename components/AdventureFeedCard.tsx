@@ -250,7 +250,7 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
                 onClick={handleHeaderClick}
                 onPointerDown={(e) => e.stopPropagation()}
               >
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-full overflow-hidden">
                   {adventure.images.map((image, index) => {
                     const isActive = index === currentImageIndex;
                     const isPrev = index === (currentImageIndex - 1 + adventure.images.length) % adventure.images.length;
@@ -262,29 +262,72 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
                         initial={false}
                         animate={{
                           opacity: isActive ? 1 : 0,
-                          scale: isActive ? 1 : 0.95,
-                          x: isActive ? 0 : isPrev ? '-3%' : isNext ? '3%' : 0,
+                          scale: isActive ? 1 : 1.1,
+                          x: isActive ? 0 : isPrev ? '-100%' : isNext ? '100%' : 0,
+                          rotateY: isActive ? 0 : isPrev ? -15 : isNext ? 15 : 0,
+                          filter: isActive ? 'blur(0px)' : 'blur(2px)',
                         }}
                         transition={{ 
-                          duration: 0.6,
-                          ease: [0.16, 1, 0.3, 1],
+                          duration: 0.8,
+                          ease: [0.25, 0.46, 0.45, 0.94],
+                          opacity: { duration: 0.6 },
+                          scale: { duration: 0.8, ease: "easeOut" },
+                          x: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] },
+                          rotateY: { duration: 0.8 },
+                          filter: { duration: 0.4 }
                         }}
                         className="absolute inset-0"
+                        style={{
+                          transformStyle: 'preserve-3d',
+                          backfaceVisibility: 'hidden'
+                        }}
                       >
-                        <ImageWithFallback
-                          src={image}
-                          alt={`${adventure.title} - ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        {/* Overlay on non-active */}
+                        <motion.div
+                          className="w-full h-full"
+                          animate={{
+                            scale: isActive ? 1 : 1.05,
+                          }}
+                          transition={{
+                            duration: 0.8,
+                            ease: "easeOut"
+                          }}
+                        >
+                          <ImageWithFallback
+                            src={image}
+                            alt={`${adventure.title} - ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
+                        
+                        {/* Dynamic gradient overlay */}
                         <motion.div
                           initial={false}
                           animate={{
-                            opacity: isActive ? 0 : 0.4,
+                            opacity: isActive ? 0 : 0.3,
+                            background: isActive 
+                              ? 'linear-gradient(45deg, transparent, transparent)' 
+                              : 'linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3))',
                           }}
-                          transition={{ duration: 0.5 }}
-                          className="absolute inset-0 bg-black"
+                          transition={{ duration: 0.6 }}
+                          className="absolute inset-0"
                         />
+                        
+                        {/* Shimmer effect for incoming images */}
+                        {isActive && (
+                          <motion.div
+                            initial={{ x: '-100%' }}
+                            animate={{ x: '100%' }}
+                            transition={{
+                              duration: 0.6,
+                              ease: "easeInOut",
+                              delay: 0.2
+                            }}
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                            style={{
+                              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)'
+                            }}
+                          />
+                        )}
                       </motion.div>
                     );
                   })}
@@ -301,17 +344,31 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
                   Tap to flip
                 </motion.div>
 
-                {/* Image Indicators - iOS style */}
+                {/* Image Indicators - Enhanced with animations */}
                 {adventure.images.length > 1 && (
                   <div className="absolute top-4 right-4 flex gap-1.5 pointer-events-none">
                     {adventure.images.map((_, index) => (
-                      <div
+                      <motion.div
                         key={index}
-                        className={`h-1 rounded-full transition-all ${
+                        className={`h-1 rounded-full ${
                           index === currentImageIndex
-                            ? 'w-6 bg-white'
-                            : 'w-1 bg-white/40'
+                            ? 'bg-white'
+                            : 'bg-white/40'
                         }`}
+                        animate={{
+                          width: index === currentImageIndex ? 24 : 4,
+                          scale: index === currentImageIndex ? 1.2 : 1,
+                          opacity: index === currentImageIndex ? 1 : 0.4,
+                        }}
+                        transition={{
+                          duration: 0.5,
+                          ease: "easeOut",
+                          scale: { duration: 0.3 }
+                        }}
+                        whileHover={{
+                          scale: 1.5,
+                          transition: { duration: 0.2 }
+                        }}
                       />
                     ))}
                   </div>

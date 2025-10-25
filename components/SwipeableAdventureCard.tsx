@@ -134,18 +134,152 @@ export function SwipeableAdventureCard({
             onClick={() => setIsFlipped(true)}
           >
             {/* Image Carousel */}
-            <div className="relative h-full">
-              <ImageWithFallback
-                src={adventure.images[currentImageIndex] || adventure.images[0]}
-                alt={adventure.title}
-                className="w-full h-full object-cover"
-              />
+            <div className="relative h-full overflow-hidden">
+              {adventure.images.map((image, index) => {
+                const isActive = index === currentImageIndex;
+                const isPrev = index === (currentImageIndex - 1 + adventure.images.length) % adventure.images.length;
+                const isNext = index === (currentImageIndex + 1) % adventure.images.length;
+                
+                return (
+                  <motion.div
+                    key={index}
+                    initial={false}
+                    animate={{
+                      opacity: isActive ? 1 : 0,
+                      scale: isActive ? 1 : 1.2,
+                      x: isActive ? 0 : isPrev ? '-120%' : isNext ? '120%' : 0,
+                      rotateZ: isActive ? 0 : isPrev ? -5 : isNext ? 5 : 0,
+                      filter: isActive ? 'brightness(1) saturate(1)' : 'brightness(0.7) saturate(0.8)',
+                    }}
+                    transition={{ 
+                      duration: 1.0,
+                      ease: [0.23, 1, 0.32, 1],
+                      opacity: { duration: 0.7 },
+                      scale: { duration: 1.0, ease: "easeOut" },
+                      x: { duration: 1.0, ease: [0.23, 1, 0.32, 1] },
+                      rotateZ: { duration: 1.0 },
+                      filter: { duration: 0.5 }
+                    }}
+                    className="absolute inset-0"
+                    style={{
+                      transformStyle: 'preserve-3d',
+                      backfaceVisibility: 'hidden'
+                    }}
+                  >
+                    <motion.div
+                      className="w-full h-full"
+                      animate={{
+                        scale: isActive ? 1 : 1.1,
+                      }}
+                      transition={{
+                        duration: 1.0,
+                        ease: "easeOut"
+                      }}
+                    >
+                      <ImageWithFallback
+                        src={image}
+                        alt={adventure.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </motion.div>
+                    
+                    {/* Dynamic overlay with color shift */}
+                    <motion.div
+                      initial={false}
+                      animate={{
+                        opacity: isActive ? 0 : 0.4,
+                        background: isActive 
+                          ? 'linear-gradient(135deg, transparent, transparent)' 
+                          : `linear-gradient(135deg, rgba(${Math.random() * 50}, ${Math.random() * 50}, ${Math.random() * 50}, 0.2), rgba(0,0,0,0.3))`,
+                      }}
+                      transition={{ duration: 0.8 }}
+                      className="absolute inset-0"
+                    />
+                    
+                    {/* Particle effect for active image */}
+                    {isActive && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                        className="absolute inset-0 pointer-events-none"
+                      >
+                        {/* Floating particles */}
+                        {[...Array(6)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ 
+                              x: Math.random() * 100 + '%',
+                              y: Math.random() * 100 + '%',
+                              scale: 0,
+                              opacity: 0
+                            }}
+                            animate={{ 
+                              scale: [0, 1, 0],
+                              opacity: [0, 0.8, 0],
+                              y: [null, '-20px']
+                            }}
+                            transition={{
+                              duration: 2,
+                              delay: i * 0.2,
+                              repeat: Infinity,
+                              repeatDelay: 3
+                            }}
+                            className="absolute w-2 h-2 bg-white/60 rounded-full"
+                          />
+                        ))}
+                      </motion.div>
+                    )}
+                    
+                    {/* Slide-in shimmer effect */}
+                    {isActive && (
+                      <motion.div
+                        initial={{ x: '-100%', rotate: -45 }}
+                        animate={{ x: '100%', rotate: -45 }}
+                        transition={{
+                          duration: 0.8,
+                          ease: "easeInOut",
+                          delay: 0.4
+                        }}
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent)',
+                          width: '200%',
+                          height: '200%',
+                          top: '-50%',
+                          left: '-50%'
+                        }}
+                      />
+                    )}
+                  </motion.div>
+                );
+              })}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               
-              {/* Image counter */}
-              <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full">
-                {currentImageIndex + 1} / {adventure.images.length}
-              </div>
+              {/* Image counter - Enhanced with animations */}
+              <motion.div 
+                className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full"
+                animate={{
+                  scale: [1, 1.05, 1],
+                  opacity: [0.8, 1, 0.8]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <motion.span
+                  key={currentImageIndex}
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -10, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {currentImageIndex + 1} / {adventure.images.length}
+                </motion.span>
+              </motion.div>
 
               {/* Content overlay */}
               <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-10">
