@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Adventure } from '../types';
 import { SwipeableAdventureCard } from './SwipeableAdventureCard';
-import { motion, AnimatePresence } from 'motion/react';
-import { toast } from 'sonner@2.0.3';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { Sparkles } from 'lucide-react';
 
 interface FeedTabProps {

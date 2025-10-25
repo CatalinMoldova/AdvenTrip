@@ -4,8 +4,8 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { MapPin, User as UserIcon, Bookmark, Trash2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
-import { motion } from 'motion/react';
+import { toast } from 'sonner';
+import { motion } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface ProfileTabProps {

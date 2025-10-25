@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Adventure } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { MapPin, Clock, DollarSign } from 'lucide-react';

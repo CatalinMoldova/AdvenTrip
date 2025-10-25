@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo, useAnimation } from 'motion/react';
+import { motion, useMotionValue, useTransform, PanInfo, useAnimation } from 'framer-motion';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';

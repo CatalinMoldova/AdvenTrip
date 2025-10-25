@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Users, Check } from 'lucide-react';
-import { motion } from 'motion/react';
-import { toast } from 'sonner@2.0.3';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface GroupJoinScreenProps {
   inviteId: string;

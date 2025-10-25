@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'motion/react';
+import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Adventure } from '../types';
 import { 
