@@ -44,6 +44,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [isLocationValid, setIsLocationValid] = useState(false);
   const [activities, setActivities] = useState<string[]>([]);
   const [season, setSeason] = useState<string>('');
   const [duration, setDuration] = useState('');
@@ -60,6 +61,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
     setName(user?.name || '');
     setLocation(user?.location || '');
     setSelectedLocation(null);
+    setIsLocationValid(false);
     setActivities([]);
     setSeason('');
     setDuration('');
@@ -75,14 +77,27 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
     console.log('Selected location:', locationData);
   };
 
+  const handleLocationChange = (newLocation: string) => {
+    setLocation(newLocation);
+    // Clear selectedLocation if user is typing (not selecting from dropdown)
+    if (!newLocation) {
+      setSelectedLocation(null);
+      setIsLocationValid(false);
+    }
+  };
+
+  const handleLocationValidationChange = (isValid: boolean) => {
+    setIsLocationValid(isValid);
+  };
+
   const handleNext = () => {
     // Validation
     if (step === 0 && !name.trim()) {
       toast.error('Please enter your name');
       return;
     }
-    if (step === 1 && (!location.trim() || !selectedLocation)) {
-      toast.error('Please select a valid location');
+    if (step === 1 && (!location.trim() || !isLocationValid)) {
+      toast.error('Please select a valid location from the suggestions');
       return;
     }
     if (step === 2 && activities.length === 0) {
@@ -209,12 +224,20 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
             </div>
             <LocationAutocomplete
               value={location}
-              onChange={setLocation}
+              onChange={handleLocationChange}
               onSelect={handleLocationSelect}
+              onValidationChange={handleLocationValidationChange}
               placeholder="Start typing a city or location..."
               className="text-center text-lg border-0 bg-black/5 rounded-xl px-6 py-4 text-black"
               autoFocus
             />
+            {location && !isLocationValid && (
+              <div className="text-center">
+                <p className="text-sm text-red-500">
+                  Please select a location from the suggestions above
+                </p>
+              </div>
+            )}
           </div>
         );
 

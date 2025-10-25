@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from './ui/input';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, Check } from 'lucide-react';
 
 interface LocationSuggestion {
   display_name: string;
@@ -17,6 +17,7 @@ interface LocationAutocompleteProps {
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export function LocationAutocomplete({
@@ -25,12 +26,14 @@ export function LocationAutocomplete({
   onSelect,
   placeholder = "City, Country",
   className = "",
-  autoFocus = false
+  autoFocus = false,
+  onValidationChange
 }: LocationAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [selectedLocation, setSelectedLocation] = useState<LocationSuggestion | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
 
@@ -85,6 +88,11 @@ export function LocationAutocomplete({
     const newValue = e.target.value;
     onChange(newValue);
     
+    // Clear selectedLocation when user starts typing
+    if (selectedLocation) {
+      setSelectedLocation(null);
+    }
+    
     // Clear previous timeout
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -96,10 +104,27 @@ export function LocationAutocomplete({
     }, 300);
   };
 
+  // Handle input blur - validate if user typed something without selecting
+  const handleInputBlur = () => {
+    // If user typed something but didn't select from suggestions, clear it
+    if (value && !selectedLocation) {
+      // Check if the current value matches any suggestion
+      const matchesSuggestion = suggestions.some(suggestion => 
+        suggestion.display_name.toLowerCase() === value.toLowerCase()
+      );
+      
+      if (!matchesSuggestion) {
+        onChange('');
+        setShowSuggestions(false);
+      }
+    }
+  };
+
   // Handle suggestion selection
   const handleSuggestionSelect = (suggestion: LocationSuggestion) => {
     onChange(suggestion.display_name);
     onSelect(suggestion);
+    setSelectedLocation(suggestion);
     setShowSuggestions(false);
     setSelectedIndex(-1);
   };
@@ -154,6 +179,13 @@ export function LocationAutocomplete({
     };
   }, []);
 
+  // Notify parent about validation state
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange(!!selectedLocation);
+    }
+  }, [selectedLocation, onValidationChange]);
+
   return (
     <div className="relative">
       <div className="relative">
@@ -162,13 +194,19 @@ export function LocationAutocomplete({
           value={value}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          onBlur={handleInputBlur}
           placeholder={placeholder}
-          className={`${className} ${isLoading ? 'pr-10' : ''}`}
+          className={`${className} ${isLoading || selectedLocation ? 'pr-10' : ''}`}
           autoFocus={autoFocus}
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+          </div>
+        )}
+        {selectedLocation && !isLoading && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <Check className="w-4 h-4 text-green-500" />
           </div>
         )}
       </div>
