@@ -106,27 +106,32 @@ export function LocationAutocomplete({
 
   // Handle input blur - validate if user typed something without selecting
   const handleInputBlur = () => {
-    // If user typed something but didn't select from suggestions, clear it
-    if (value && !selectedLocation) {
-      // Check if the current value matches any suggestion
-      const matchesSuggestion = suggestions.some(suggestion => 
-        suggestion.display_name.toLowerCase() === value.toLowerCase()
-      );
-      
-      if (!matchesSuggestion) {
-        onChange('');
-        setShowSuggestions(false);
+    // Add a small delay to allow click events on suggestions to complete first
+    setTimeout(() => {
+      // If user typed something but didn't select from suggestions, clear it
+      if (value && !selectedLocation) {
+        // Check if the current value matches any suggestion
+        const matchesSuggestion = suggestions.some(suggestion => 
+          suggestion.display_name.toLowerCase() === value.toLowerCase()
+        );
+        
+        if (!matchesSuggestion) {
+          onChange('');
+          setShowSuggestions(false);
+        }
       }
-    }
+    }, 150);
   };
 
   // Handle suggestion selection
   const handleSuggestionSelect = (suggestion: LocationSuggestion) => {
+    console.log('Selecting suggestion:', suggestion);
     onChange(suggestion.display_name);
     onSelect(suggestion);
     setSelectedLocation(suggestion);
     setShowSuggestions(false);
     setSelectedIndex(-1);
+    console.log('Selection complete, selectedLocation set to:', suggestion);
   };
 
   // Handle keyboard navigation
@@ -181,8 +186,11 @@ export function LocationAutocomplete({
 
   // Notify parent about validation state
   useEffect(() => {
+    console.log('Validation effect triggered, selectedLocation:', selectedLocation);
     if (onValidationChange) {
-      onValidationChange(!!selectedLocation);
+      const isValid = !!selectedLocation;
+      console.log('Notifying parent validation change:', isValid);
+      onValidationChange(isValid);
     }
   }, [selectedLocation, onValidationChange]);
 
@@ -217,7 +225,10 @@ export function LocationAutocomplete({
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion.place_id}
-              onClick={() => handleSuggestionSelect(suggestion)}
+              onMouseDown={(e) => {
+                e.preventDefault(); // Prevent input blur
+                handleSuggestionSelect(suggestion);
+              }}
               className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 ${
                 index === selectedIndex ? 'bg-gray-100' : ''
               } ${index === 0 ? 'rounded-t-xl' : ''} ${
