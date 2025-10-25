@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ScrollArea } from './ui/scroll-area';
 import { Compass, Sparkles } from 'lucide-react';
 import { Adventure, User } from '../types';

@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { AdventureRequest, Adventure, User } from '../types';
 import { Button } from './ui/button';
 import { Plus, FolderOpen, Users, User as UserIcon, ChevronRight, ArrowLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SwipeableAdventureCard } from './SwipeableAdventureCard';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface AdventuresTabProps {
   adventureRequests: AdventureRequest[];
