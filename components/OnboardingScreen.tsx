@@ -5,6 +5,7 @@ import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { MapPin, Sparkles, ArrowRight, Compass, Plus, X as XIcon } from 'lucide-react';
 import { User } from '../types';
+import { LocationAutocomplete } from './LocationAutocomplete';
 
 interface OnboardingScreenProps {
   onComplete: (user: User) => void;
@@ -21,15 +22,33 @@ const availableActivities = [
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
   const [step, setStep] = useState<'location' | 'activities' | 'transition'>('location');
   const [location, setLocation] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [isLocationValid, setIsLocationValid] = useState(false);
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
   const [customActivity, setCustomActivity] = useState('');
   const [customActivities, setCustomActivities] = useState<string[]>([]);
 
   const handleLocationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (location.trim()) {
+    if (location.trim() && isLocationValid) {
       setStep('activities');
     }
+  };
+
+  const handleLocationSelect = (locationData: any) => {
+    setSelectedLocation(locationData);
+  };
+
+  const handleLocationChange = (newLocation: string) => {
+    setLocation(newLocation);
+    if (!newLocation) {
+      setSelectedLocation(null);
+      setIsLocationValid(false);
+    }
+  };
+
+  const handleLocationValidationChange = (isValid: boolean) => {
+    setIsLocationValid(isValid);
   };
 
   const toggleActivity = (activity: string) => {
@@ -91,17 +110,22 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                     <MapPin className="w-4 h-4" />
                     Where are you from?
                   </label>
-                  <Input
-                    type="text"
+                  <LocationAutocomplete
                     value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Enter your city or country"
-                    required
+                    onChange={handleLocationChange}
+                    onSelect={handleLocationSelect}
+                    onValidationChange={handleLocationValidationChange}
+                    placeholder="Start typing a city or location..."
                   />
+                  {location && !isLocationValid && (
+                    <p className="text-sm text-red-500">
+                      Please select a location from the suggestions above
+                    </p>
+                  )}
                 </div>
                 <Button
                   type="submit"
-                  disabled={!location.trim()}
+                  disabled={!location.trim() || !isLocationValid}
                   className="w-full"
                 >
                   Continue
