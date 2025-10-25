@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { AdventureRequest, User, GroupMember } from '../types';
 import { ChevronLeft, Check, Share2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { LocationAutocomplete } from './LocationAutocomplete';
 
 interface CreateAdventureWizardProps {
   isOpen: boolean;
@@ -42,6 +43,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
   const [step, setStep] = useState(0);
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [isLocationValid, setIsLocationValid] = useState(false);
   const [activities, setActivities] = useState<string[]>([]);
   const [season, setSeason] = useState<string>('');
   const [duration, setDuration] = useState('');
@@ -57,6 +60,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
     setStep(0);
     setName(user?.name || '');
     setLocation(user?.location || '');
+    setSelectedLocation(null);
+    setIsLocationValid(false);
     setActivities([]);
     setSeason('');
     setDuration('');
@@ -66,14 +71,33 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
     onClose();
   };
 
+  const handleLocationSelect = (locationData: any) => {
+    setSelectedLocation(locationData);
+    // You can also store coordinates if needed for future features
+    console.log('Selected location:', locationData);
+  };
+
+  const handleLocationChange = (newLocation: string) => {
+    setLocation(newLocation);
+    // Clear selectedLocation if user is typing (not selecting from dropdown)
+    if (!newLocation) {
+      setSelectedLocation(null);
+      setIsLocationValid(false);
+    }
+  };
+
+  const handleLocationValidationChange = (isValid: boolean) => {
+    setIsLocationValid(isValid);
+  };
+
   const handleNext = () => {
     // Validation
     if (step === 0 && !name.trim()) {
       toast.error('Please enter your name');
       return;
     }
-    if (step === 1 && !location.trim()) {
-      toast.error('Please enter your location');
+    if (step === 1 && (!location.trim() || !isLocationValid)) {
+      toast.error('Please select a valid location from the suggestions');
       return;
     }
     if (step === 2 && activities.length === 0) {
@@ -120,6 +144,22 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       const linkId = Math.random().toString(36).substring(7);
       const link = `${window.location.origin}/join/${linkId}`;
       setInviteLink(link);
+      
+      // Create group adventure request
+      const request: AdventureRequest = {
+        id: linkId, // Use the same ID as the invite link
+        userId: user?.id || '1',
+        mode: 'group',
+        numberOfDays: parseInt(duration),
+        activities: activities.map(a => a.replace(/[^\w\s]/g, '').trim()),
+        customActivities: [],
+        transportation: transport,
+        inviteLink: link,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      
+      onCreateAdventure(request);
     } else {
       // Create adventure immediately for individual mode
       const request: AdventureRequest = {
@@ -182,13 +222,22 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
               <h2 className="text-2xl text-black mb-2">Where are you?</h2>
               <p className="text-sm text-black/60">Your starting point</p>
             </div>
-            <Input
+            <LocationAutocomplete
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="City, Country"
+              onChange={handleLocationChange}
+              onSelect={handleLocationSelect}
+              onValidationChange={handleLocationValidationChange}
+              placeholder="Start typing a city or location..."
               className="text-center text-lg border-0 bg-black/5 rounded-xl px-6 py-4 text-black"
               autoFocus
             />
+            {location && !isLocationValid && (
+              <div className="text-center">
+                <p className="text-sm text-red-500">
+                  Please select a location from the suggestions above
+                </p>
+              </div>
+            )}
           </div>
         );
 
