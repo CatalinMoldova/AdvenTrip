@@ -7,11 +7,13 @@ import { ProfileTab } from './components/ProfileTab';
 import { BottomTabNavigation } from './components/BottomTabNavigation';
 import { CreateAdventureWizard } from './components/CreateAdventureWizard';
 import { GroupJoinScreen } from './components/GroupJoinScreen';
+import { InviteOnboardingScreen } from './components/InviteOnboardingScreen';
+import { GroupAdventureManagement } from './components/GroupAdventureManagement';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 import { mockAdventures } from './data/mockData';
 
-type Screen = 'onboarding' | 'main' | 'group-join';
+type Screen = 'onboarding' | 'main' | 'group-join' | 'invite-onboarding' | 'group-management';
 type Tab = 'feed' | 'adventures' | 'profile';
 
 interface SavedTrip {
@@ -28,6 +30,7 @@ export default function App() {
   const [discardedTrips, setDiscardedTrips] = useState<Adventure[]>([]);
   const [showCreateWizard, setShowCreateWizard] = useState(false);
   const [groupInviteId, setGroupInviteId] = useState<string | null>(null);
+  const [selectedGroupAdventure, setSelectedGroupAdventure] = useState<AdventureRequest | null>(null);
 
   // Handle routing based on URL
   useEffect(() => {
@@ -40,7 +43,18 @@ export default function App() {
       if (joinMatch) {
         const inviteId = joinMatch[1];
         setGroupInviteId(inviteId);
-        setCurrentScreen('group-join');
+        // If user is already logged in, go to group management
+        if (user) {
+          const adventureRequest = adventureRequests.find(req => req.id === inviteId);
+          if (adventureRequest) {
+            setSelectedGroupAdventure(adventureRequest);
+            setCurrentScreen('group-management');
+          } else {
+            setCurrentScreen('invite-onboarding');
+          }
+        } else {
+          setCurrentScreen('invite-onboarding');
+        }
         return;
       }
       
@@ -131,6 +145,49 @@ export default function App() {
     }
   };
 
+  const handleInviteOnboardingComplete = (newUser: User, adventureId: string) => {
+    // Set the user as logged in
+    setUser(newUser);
+    
+    // Find the adventure request and add the user as a member
+    const adventureRequest = adventureRequests.find(req => req.id === adventureId);
+    if (adventureRequest) {
+      const updatedRequest = {
+        ...adventureRequest,
+        groupMembers: [
+          ...(adventureRequest.groupMembers || []),
+          {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+            avatar: newUser.avatar,
+            budget: newUser.budget,
+            preferences: newUser.interests
+          }
+        ]
+      };
+      
+      setAdventureRequests(prev => 
+        prev.map(req => req.id === adventureId ? updatedRequest : req)
+      );
+      
+      setSelectedGroupAdventure(updatedRequest);
+      setCurrentScreen('group-management');
+      
+      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`);
+    }
+  };
+
+  const handleGroupManagementBack = () => {
+    setCurrentScreen('main');
+    setSelectedGroupAdventure(null);
+  };
+
+  const handleGroupAdventureClick = (adventureRequest: AdventureRequest) => {
+    setSelectedGroupAdventure(adventureRequest);
+    setCurrentScreen('group-management');
+  };
+
   const handleSaveTrip = (adventure: Adventure, rating: number) => {
     setSavedTrips(prev => {
       // Check if already saved
@@ -163,6 +220,25 @@ export default function App() {
         />
       )}
 
+      {currentScreen === 'invite-onboarding' && groupInviteId && (
+        <InviteOnboardingScreen 
+          inviteId={groupInviteId} 
+          onComplete={handleInviteOnboardingComplete} 
+        />
+      )}
+
+      {currentScreen === 'group-management' && selectedGroupAdventure && user && (
+        <GroupAdventureManagement 
+          adventureRequest={selectedGroupAdventure}
+          currentUser={user}
+          onBack={handleGroupManagementBack}
+          onShareLink={(link) => {
+            navigator.clipboard.writeText(link);
+            toast.success('Link copied to clipboard!');
+          }}
+        />
+      )}
+
       {currentScreen === 'main' && user && (
         <>
           {/* Tab Content */}
@@ -181,6 +257,7 @@ export default function App() {
                 adventures={mockAdventures}
                 onCreateNew={() => setShowCreateWizard(true)}
                 onSaveToFolder={(folderId: string, adventure: Adventure, rating: number) => handleSaveTrip(adventure, rating)}
+                onGroupAdventureClick={handleGroupAdventureClick}
                 user={user}
               />
             )}
