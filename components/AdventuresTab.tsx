@@ -37,9 +37,9 @@ export function AdventuresTab({
   const [folders, setFolders] = useState<AdventureFolder[]>(
     adventureRequests.map(req => ({
       id: req.id,
-      name: req.groupMembers && req.groupMembers.length > 0 
+      name: req.name || (req.groupMembers && req.groupMembers.length > 0 
         ? `Trip with ${req.groupMembers.map(m => m.name).join(', ')}`
-        : `${req.activities[0] || 'Adventure'} Trip`,
+        : `${req.activities[0] || 'Adventure'} Trip`),
       mode: req.mode,
       members: req.groupMembers,
       savedAdventures: [],

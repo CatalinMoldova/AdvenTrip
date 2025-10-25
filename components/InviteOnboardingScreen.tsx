@@ -86,7 +86,9 @@ export const InviteOnboardingScreen: React.FC<InviteOnboardingScreenProps> = ({
   };
 
   const handleComplete = () => {
+    console.log('handleComplete called, selectedActivities:', selectedActivities);
     if (selectedActivities.length === 0) {
+      console.log('No activities selected, returning');
       return;
     }
 
@@ -102,6 +104,7 @@ export const InviteOnboardingScreen: React.FC<InviteOnboardingScreenProps> = ({
       createdAt: new Date().toISOString(),
     };
 
+    console.log('Calling onComplete with:', newUser, inviteId);
     onComplete(newUser, inviteId);
   };
 
