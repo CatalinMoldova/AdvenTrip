@@ -148,7 +148,7 @@ export function SwipeableAdventureCard({
               </div>
 
               {/* Content overlay */}
-              <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+              <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-10">
                 <h2 className="text-3xl mb-3">{adventure.title}</h2>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2">
@@ -495,7 +495,7 @@ export function SwipeableAdventureCard({
 
       {/* Bottom Slider - Only visible when front is showing */}
       {!isFlipped && (
-        <div className="absolute bottom-8 left-8 right-8 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg">
+        <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg z-20">
           <div className="flex items-center justify-between mb-2 text-sm text-black/70">
             <span>Not interested</span>
             <span>Love it!</span>
