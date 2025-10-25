@@ -1,0 +1,366 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* iOS Typography - Using system fonts */
+  --font-size: 17px; /* iOS default body size */
+  
+  /* Black & White Color System */
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: rgba(255, 255, 255, 0.7);
+  --card-foreground: #000000;
+  --popover: rgba(255, 255, 255, 0.95);
+  --popover-foreground: #000000;
+  --primary: #000000; /* Black */
+  --primary-foreground: #ffffff;
+  --secondary: rgba(0, 0, 0, 0.05);
+  --secondary-foreground: #000000;
+  --muted: rgba(0, 0, 0, 0.1);
+  --muted-foreground: rgba(0, 0, 0, 0.6);
+  --accent: rgba(0, 0, 0, 0.05);
+  --accent-foreground: #000000;
+  --destructive: #000000;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: rgba(0, 0, 0, 0.05);
+  --input-background: rgba(0, 0, 0, 0.05);
+  --switch-background: rgba(0, 0, 0, 0.1);
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --ring: rgba(0, 0, 0, 0.2);
+  
+  /* iOS System Colors */
+  --ios-blue: #007AFF;
+  --ios-green: #34C759;
+  --ios-indigo: #5856D6;
+  --ios-orange: #FF9500;
+  --ios-pink: #FF2D55;
+  --ios-purple: #AF52DE;
+  --ios-red: #FF3B30;
+  --ios-teal: #5AC8FA;
+  --ios-yellow: #FFCC00;
+  
+  /* iOS Grays */
+  --ios-gray: #8E8E93;
+  --ios-gray2: #AEAEB2;
+  --ios-gray3: #C7C7CC;
+  --ios-gray4: #D1D1D6;
+  --ios-gray5: #E5E5EA;
+  --ios-gray6: #F2F2F7;
+  
+  /* iOS Label Colors */
+  --ios-label: #000000;
+  --ios-label-secondary: #3C3C43;
+  --ios-label-tertiary: #3C3C4399;
+  --ios-separator: rgba(60, 60, 67, 0.36);
+  
+  /* Chart colors - iOS style */
+  --chart-1: #007AFF;
+  --chart-2: #AF52DE;
+  --chart-3: #FF2D55;
+  --chart-4: #FF9500;
+  --chart-5: #34C759;
+  
+  /* iOS Corner Radius */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  
+  /* Sidebar colors */
+  --sidebar: rgba(242, 242, 247, 0.95);
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #007AFF;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(0, 122, 255, 0.1);
+  --sidebar-accent-foreground: #007AFF;
+  --sidebar-border: rgba(60, 60, 67, 0.18);
+  --sidebar-ring: rgba(0, 122, 255, 0.3);
+  
+  /* NOMADIQ Brand Colors - iOS friendly */
+  --nomadiq-purple: #AF52DE;
+  --nomadiq-blue: #007AFF;
+  --nomadiq-cyan: #5AC8FA;
+  --nomadiq-pink: #FF2D55;
+  --nomadiq-orange: #FF9500;
+}
+
+.dark {
+  /* iOS Dark Mode Colors */
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: rgba(28, 28, 30, 0.7);
+  --card-foreground: #ffffff;
+  --popover: rgba(28, 28, 30, 0.95);
+  --popover-foreground: #ffffff;
+  --primary: #0A84FF; /* iOS Blue (Dark) */
+  --primary-foreground: #ffffff;
+  --secondary: rgba(120, 120, 128, 0.24);
+  --secondary-foreground: #ffffff;
+  --muted: rgba(120, 120, 128, 0.32);
+  --muted-foreground: #98989D;
+  --accent: rgba(10, 132, 255, 0.2);
+  --accent-foreground: #0A84FF;
+  --destructive: #FF453A;
+  --destructive-foreground: #ffffff;
+  --border: rgba(84, 84, 88, 0.48);
+  --input: rgba(120, 120, 128, 0.24);
+  --ring: rgba(10, 132, 255, 0.4);
+  
+  /* iOS Dark Mode Grays */
+  --ios-gray: #98989D;
+  --ios-gray2: #636366;
+  --ios-gray3: #48484A;
+  --ios-gray4: #3A3A3C;
+  --ios-gray5: #2C2C2E;
+  --ios-gray6: #1C1C1E;
+  
+  /* iOS Label Colors (Dark) */
+  --ios-label: #ffffff;
+  --ios-label-secondary: #EBEBF5;
+  --ios-label-tertiary: #EBEBF599;
+  --ios-separator: rgba(84, 84, 88, 0.6);
+  
+  --sidebar: rgba(28, 28, 30, 0.95);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #0A84FF;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(10, 132, 255, 0.2);
+  --sidebar-accent-foreground: #0A84FF;
+  --sidebar-border: rgba(84, 84, 88, 0.48);
+  --sidebar-ring: rgba(10, 132, 255, 0.4);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 
+                 system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em; /* iOS style letter spacing */
+  }
+}
+
+/**
+ * iOS Typography System
+ */
+@layer base {
+  h1 {
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.011em;
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.007em;
+  }
+
+  h3 {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: 0.011em;
+  }
+
+  h4 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.009em;
+  }
+
+  p {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.47;
+    letter-spacing: -0.01em;
+  }
+
+  label {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  button {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  input {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* iOS-style animations */
+@keyframes iosSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes iosSlideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes iosFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes iosScaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  background-size: 1000px 100%;
+}
+
+.animate-gradient {
+  animation: gradient 8s ease infinite;
+  background-size: 200% 200%;
+}
+
+/* iOS Blur Effects */
+.ios-blur-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.ios-blur-dark {
+  background: rgba(28, 28, 30, 0.7);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* iOS Card Shadows */
+.ios-shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+}
+
+.ios-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.ios-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+.ios-shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* 3D Card Flip Animation */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Active state scale */
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+/* Safe area padding for iOS */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
