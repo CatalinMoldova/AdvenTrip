@@ -93,7 +93,6 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
   };
 
   const handleNext = () => {
-    console.log('handleNext called, current step:', step, 'transport value:', transport);
     // Validation
     if (step === 0 && !adventureName.trim()) {
       toast.error('Please enter an adventure name');
@@ -120,7 +119,6 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       return;
     }
     if (step === 6 && !transport) {
-      console.log('Transport validation failed, transport value:', transport);
       toast.error('Please select a means of transport');
       return;
     }
@@ -401,10 +399,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                 return (
                   <motion.button
                     key={t.id}
-                    onClick={() => {
-                      console.log('Transport selected:', t.id);
-                      setTransport(t.id);
-                    }}
+                    onClick={() => setTransport(t.id)}
                     className={`w-full p-4 rounded-2xl text-left transition-all border ${
                       isSelected
                         ? 'bg-black text-white border-black'
@@ -576,7 +571,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </AnimatePresence>
         </div>
 
-        {step < 6 && (
+        {step < 7 && (
           <div className="sticky bottom-0 bg-white border-t border-black/10 px-6 py-4">
             <Button
               onClick={handleNext}
