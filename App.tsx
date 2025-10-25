@@ -27,6 +27,7 @@ export default function App() {
   const [discardedTrips, setDiscardedTrips] = useState<Adventure[]>([]);
   const [showCreateWizard, setShowCreateWizard] = useState(false);
 
+
   const handleOnboardingComplete = (newUser: User) => {
     setUser(newUser);
     setCurrentScreen('main');
