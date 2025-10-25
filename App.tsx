@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, AdventureRequest, Adventure } from './types';
+import { HomePage } from './components/HomePage';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { FeedTab } from './components/FeedTab';
 import { AdventuresTab } from './components/AdventuresTab';
@@ -10,7 +11,7 @@ import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 import { mockAdventures } from './data/mockData';
 
-type Screen = 'onboarding' | 'main';
+type Screen = 'home' | 'onboarding' | 'main';
 type Tab = 'feed' | 'adventures' | 'profile';
 
 interface SavedTrip {
@@ -19,7 +20,7 @@ interface SavedTrip {
 }
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('onboarding');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [activeTab, setActiveTab] = useState<Tab>('feed');
   const [user, setUser] = useState<User | null>(null);
   const [adventureRequests, setAdventureRequests] = useState<AdventureRequest[]>([]);
@@ -27,6 +28,10 @@ export default function App() {
   const [discardedTrips, setDiscardedTrips] = useState<Adventure[]>([]);
   const [showCreateWizard, setShowCreateWizard] = useState(false);
 
+
+  const handleGetStarted = () => {
+    setCurrentScreen('onboarding');
+  };
 
   const handleOnboardingComplete = (newUser: User) => {
     setUser(newUser);
@@ -91,7 +96,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
+      {currentScreen === 'home' && (
+        <HomePage onGetStarted={handleGetStarted} />
+      )}
+
       {currentScreen === 'onboarding' && (
         <OnboardingScreen onComplete={handleOnboardingComplete} />
       )}
