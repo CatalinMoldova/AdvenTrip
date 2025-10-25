@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { AdventureRequest, User, GroupMember } from '../types';
 import { ChevronLeft, Check, Share2, Copy } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface CreateAdventureWizardProps {
   isOpen: boolean;

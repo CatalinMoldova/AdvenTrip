@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { User, AdventureRequest, Adventure } from './types';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { FeedTab } from './components/FeedTab';
@@ -7,7 +7,7 @@ import { ProfileTab } from './components/ProfileTab';
 import { BottomTabNavigation } from './components/BottomTabNavigation';
 import { CreateAdventureWizard } from './components/CreateAdventureWizard';
 import { Toaster } from './components/ui/sonner';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { mockAdventures } from './data/mockData';
 
 type Screen = 'onboarding' | 'main';
@@ -112,7 +112,7 @@ export default function App() {
                 adventureRequests={adventureRequests}
                 adventures={mockAdventures}
                 onCreateNew={() => setShowCreateWizard(true)}
-                onSaveToFolder={handleSaveTrip}
+                onSaveToFolder={(folderId: string, adventure: Adventure, rating: number) => handleSaveTrip(adventure, rating)}
                 user={user}
               />
             )}
