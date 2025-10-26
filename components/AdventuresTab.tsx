@@ -287,11 +287,6 @@ export function AdventuresTab({
                     startLocation={user?.location}
                   />
                 </AnimatePresence>
-
-                {/* Counter */}
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm z-30">
-                  {currentFeedIndex + 1} / {visibleAdventures.length}
-                </div>
               </div>
             ) : (
               <div className="text-center max-w-md py-12">
