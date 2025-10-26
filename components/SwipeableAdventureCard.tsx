@@ -156,7 +156,10 @@ export function SwipeableAdventureCard({
           {/* FRONT OF CARD */}
           <div
             className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white"
-            style={{ backfaceVisibility: 'hidden' }}
+            style={{ 
+              backfaceVisibility: 'hidden',
+              pointerEvents: isFlipped ? 'none' : 'auto'
+            }}
             onClick={() => setIsFlipped(true)}
           >
             {/* Image Carousel */}
@@ -207,7 +210,8 @@ export function SwipeableAdventureCard({
             className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white"
             style={{ 
               backfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)'
+              transform: 'rotateY(180deg)',
+              pointerEvents: isFlipped ? 'auto' : 'none'
             }}
           >
             <div className="h-full overflow-y-auto">
