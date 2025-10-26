@@ -2,13 +2,13 @@ import { motion } from 'framer-motion';
 import { Home, Compass, UserCircle, PlusCircle, MessageCircle } from 'lucide-react';
 
 interface BottomTabNavigationProps {
-  activeTab: 'home' | 'adventures' | 'create' | 'chat' | 'profile';
-  onTabChange: (tab: 'home' | 'adventures' | 'create' | 'chat' | 'profile') => void;
+  activeTab: 'feed' | 'adventures' | 'create' | 'chat' | 'profile';
+  onTabChange: (tab: 'feed' | 'adventures' | 'create' | 'chat' | 'profile') => void;
 }
 
 export function BottomTabNavigation({ activeTab, onTabChange }: BottomTabNavigationProps) {
   const tabs = [
-    { id: 'home' as const, label: 'Home', icon: Home },
+    { id: 'feed' as const, label: 'Feed', icon: Home },
     { id: 'adventures' as const, label: 'Adventures', icon: Compass },
     { id: 'create' as const, label: 'Create', icon: PlusCircle, isSpecial: true },
     { id: 'chat' as const, label: 'Chat', icon: MessageCircle },

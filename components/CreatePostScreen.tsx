@@ -1,30 +1,36 @@
 import React, { useState } from 'react';
-import { TripPost } from '../types';
-import { X, Image as ImageIcon, MapPin, Calendar, Star, Hotel, UtensilsCrossed, Plus, Check } from 'lucide-react';
+import { X, Plus, Star, MapPin, Calendar, Hotel, List, Image as ImageIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
+import { Card } from './ui/card';
 import { toast } from 'sonner';
 
 interface CreatePostScreenProps {
-  onCreatePost: (post: Omit<TripPost, 'id' | 'createdAt' | 'stats' | 'author'>) => void;
+  onCreatePost: (postData: {
+    title: string;
+    description?: string;
+    destination: string;
+    images: string[];
+    duration?: string;
+    activities?: string[];
+    hotels?: string[];
+    rating?: number;
+    isPublic: boolean;
+    isEditable: boolean;
+    isBucketList: boolean;
+  }) => void;
   onCancel: () => void;
-  currentUserId: string;
-  currentUserName: string;
-  currentUserAvatar?: string;
-  currentUserUsername?: string;
+  currentUser: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
 }
 
-export function CreatePostScreen({
-  onCreatePost,
-  onCancel,
-  currentUserId,
-  currentUserName,
-  currentUserAvatar,
-  currentUserUsername,
-}: CreatePostScreenProps) {
+export function CreatePostScreen({ onCreatePost, onCancel, currentUser }: CreatePostScreenProps) {
   const [step, setStep] = useState<'type' | 'details'>('type');
   const [isBucketList, setIsBucketList] = useState(false);
   
@@ -39,8 +45,6 @@ export function CreatePostScreen({
   const [activityInput, setActivityInput] = useState('');
   const [hotels, setHotels] = useState<string[]>([]);
   const [hotelInput, setHotelInput] = useState('');
-  const [restaurants, setRestaurants] = useState<string[]>([]);
-  const [restaurantInput, setRestaurantInput] = useState('');
   const [rating, setRating] = useState<number | undefined>(undefined);
   const [isPublic, setIsPublic] = useState(true);
   const [isEditable, setIsEditable] = useState(false);
@@ -83,50 +87,25 @@ export function CreatePostScreen({
     setHotels(hotels.filter((_, i) => i !== index));
   };
 
-  const handleAddRestaurant = () => {
-    if (restaurantInput.trim()) {
-      setRestaurants([...restaurants, restaurantInput.trim()]);
-      setRestaurantInput('');
-    }
-  };
-
-  const handleRemoveRestaurant = (index: number) => {
-    setRestaurants(restaurants.filter((_, i) => i !== index));
-  };
-
   const handleSubmit = () => {
     if (!title.trim() || !destination.trim()) {
       toast.error('Please fill in title and destination');
       return;
     }
 
-    // Extract tags from activities and destination
-    const tags = [
-      ...activities.map(a => a.toLowerCase()),
-      destination.toLowerCase(),
-      ...(isBucketList ? ['bucket-list'] : []),
-    ];
-
-    const newPost: Omit<TripPost, 'id' | 'createdAt' | 'stats' | 'author'> = {
-      userId: currentUserId,
+    onCreatePost({
       title,
       description: description || undefined,
       destination,
-      images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1080'],
+      images,
       duration: duration || undefined,
       activities: activities.length > 0 ? activities : undefined,
       hotels: hotels.length > 0 ? hotels : undefined,
-      restaurants: restaurants.length > 0 ? restaurants : undefined,
-      tags,
       rating: rating,
       isPublic,
       isEditable,
       isBucketList,
-      updatedAt: new Date().toISOString(),
-    };
-
-    onCreatePost(newPost);
-    toast.success('Post created successfully! 🎉');
+    });
   };
 
   if (step === 'type') {
@@ -136,7 +115,7 @@ export function CreatePostScreen({
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900">Create Post</h1>
-            <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full">
+            <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <X className="w-6 h-6 text-gray-600" />
             </button>
           </div>
@@ -146,14 +125,14 @@ export function CreatePostScreen({
           </p>
 
           <div className="space-y-4">
-            {/* Past Trip */}
+            {/* Completed Trip */}
             <button
               onClick={() => handleSelectType(false)}
               className="w-full bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-green-500 hover:shadow-lg transition-all text-left"
             >
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Check className="w-6 h-6 text-green-600" />
+                  <Star className="w-6 h-6 text-green-600 fill-green-600" />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 mb-1">Trip I've Taken</h3>
@@ -171,7 +150,7 @@ export function CreatePostScreen({
             >
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Star className="w-6 h-6 text-blue-600" />
+                  <MapPin className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 mb-1">Bucket List Trip</h3>
@@ -208,8 +187,8 @@ export function CreatePostScreen({
         <div className="px-4 py-6 space-y-6">
           {/* Title */}
           <div>
-            <Label htmlFor="title" className="text-base font-semibold mb-2">
-              Title *
+            <Label htmlFor="title" className="text-base font-semibold mb-2 flex items-center gap-2">
+              Title <span className="text-red-500">*</span>
             </Label>
             <Input
               id="title"
@@ -224,7 +203,7 @@ export function CreatePostScreen({
           <div>
             <Label htmlFor="destination" className="text-base font-semibold mb-2 flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              Destination *
+              Destination <span className="text-red-500">*</span>
             </Label>
             <Input
               id="destination"
@@ -250,7 +229,22 @@ export function CreatePostScreen({
             />
           </div>
 
-          {/* Images */}
+          {/* Duration */}
+          <div>
+            <Label htmlFor="duration" className="text-base font-semibold mb-2 flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Duration
+            </Label>
+            <Input
+              id="duration"
+              placeholder="e.g., 7 days"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="text-base"
+            />
+          </div>
+
+          {/* Photos */}
           <div>
             <Label className="text-base font-semibold mb-2 flex items-center gap-2">
               <ImageIcon className="w-4 h-4" />
@@ -258,9 +252,9 @@ export function CreatePostScreen({
             </Label>
             <div className="space-y-3">
               {images.map((img, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
                   <img src={img} alt="" className="w-16 h-16 rounded-lg object-cover" />
-                  <Input value={img} readOnly className="flex-1 text-sm" />
+                  <Input value={img} readOnly className="flex-1 text-sm bg-white" />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -286,23 +280,12 @@ export function CreatePostScreen({
             </div>
           </div>
 
-          {/* Duration */}
-          <div>
-            <Label htmlFor="duration" className="text-base font-semibold mb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Duration
-            </Label>
-            <Input
-              id="duration"
-              placeholder="e.g., 7 days"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-            />
-          </div>
-
           {/* Activities */}
           <div>
-            <Label className="text-base font-semibold mb-2">Activities</Label>
+            <Label className="text-base font-semibold mb-2 flex items-center gap-2">
+              <List className="w-4 h-4" />
+              Activities
+            </Label>
             <div className="space-y-2">
               <div className="flex flex-wrap gap-2 mb-2">
                 {activities.map((activity, index) => (
@@ -319,7 +302,7 @@ export function CreatePostScreen({
               </div>
               <div className="flex gap-2">
                 <Input
-                  placeholder="e.g., Surfing"
+                  placeholder="e.g., Surfing, Temples, Food Tours"
                   value={activityInput}
                   onChange={(e) => setActivityInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddActivity()}
@@ -339,8 +322,8 @@ export function CreatePostScreen({
             </Label>
             <div className="space-y-2">
               {hotels.map((hotel, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input value={hotel} readOnly className="flex-1" />
+                <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+                  <Input value={hotel} readOnly className="flex-1 bg-white" />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -358,39 +341,6 @@ export function CreatePostScreen({
                   onKeyPress={(e) => e.key === 'Enter' && handleAddHotel()}
                 />
                 <Button onClick={handleAddHotel} size="sm">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Restaurants */}
-          <div>
-            <Label className="text-base font-semibold mb-2 flex items-center gap-2">
-              <UtensilsCrossed className="w-4 h-4" />
-              Restaurants
-            </Label>
-            <div className="space-y-2">
-              {restaurants.map((restaurant, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input value={restaurant} readOnly className="flex-1" />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveRestaurant(index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Restaurant name"
-                  value={restaurantInput}
-                  onChange={(e) => setRestaurantInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddRestaurant()}
-                />
-                <Button onClick={handleAddRestaurant} size="sm">
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
@@ -425,7 +375,7 @@ export function CreatePostScreen({
           )}
 
           {/* Privacy Settings */}
-          <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+          <Card className="bg-gray-50 p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-gray-900">Public Post</p>
@@ -445,10 +395,20 @@ export function CreatePostScreen({
               </div>
               <Switch checked={isEditable} onCheckedChange={setIsEditable} />
             </div>
+          </Card>
+
+          {/* Info */}
+          <div className="bg-blue-50 rounded-lg p-4 text-sm text-gray-700">
+            <p className="font-medium mb-1">💡 Tip</p>
+            <p>
+              After posting, you'll get a shareable link to send to friends.
+              {!isPublic && ' This post will be unlisted and only visible to people with the link.'}
+            </p>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
 

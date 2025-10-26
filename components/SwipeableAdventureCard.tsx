@@ -4,8 +4,9 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Adventure } from '../types';
 import { 
   MapPin, Clock, DollarSign, Calendar, Hotel as HotelIcon, 
-  Plane, Check, Edit2, X as XIcon, ChevronDown
+  Plane, Check, Edit2, X as XIcon, ChevronDown, Share2
 } from 'lucide-react';
+import { ShareModal } from './ShareModal';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Slider } from './ui/slider';
@@ -40,6 +41,7 @@ export function SwipeableAdventureCard({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [rating, setRating] = useState(50);
   const [editMode, setEditMode] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   
   // Editable fields
   const [selectedFlight, setSelectedFlight] = useState('economy');
@@ -171,8 +173,19 @@ export function SwipeableAdventureCard({
                 {currentImageIndex + 1} / {adventure.images.length}
               </div>
 
+              {/* Share button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsShareModalOpen(true);
+                }}
+                className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white p-2.5 rounded-full hover:bg-black/80 transition-colors z-30"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
+
               {/* Content overlay */}
-              <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-10">
+              <div className="absolute bottom-24 left-0 right-0 p-8 text-white z-10">
                 <h2 className="text-3xl mb-3">{adventure.title}</h2>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2">
@@ -534,6 +547,14 @@ export function SwipeableAdventureCard({
           </div>
         </div>
       )}
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        postTitle={adventure.title}
+        postUrl={`${window.location.origin}/adventure/${adventure.id}`}
+      />
     </motion.div>
   );
 }
