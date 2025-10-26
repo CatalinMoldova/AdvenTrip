@@ -27,7 +27,7 @@ interface SwipeableAdventureCardProps {
 }
 
 const SWIPE_THRESHOLD = 100;
-const ROTATION_RANGE = 30;
+const ROTATION_RANGE = 10;
 
 export function SwipeableAdventureCard({
   adventure,
@@ -51,6 +51,13 @@ export function SwipeableAdventureCard({
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-ROTATION_RANGE, ROTATION_RANGE]);
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
+  
+  // Create a derived motion value for rating-based rotation
+  const ratingRotate = useTransform(rating, [0, 50, 100], [-ROTATION_RANGE, 0, ROTATION_RANGE]);
+  
+  // Gradient overlays based on tilt direction - much more sensitive
+  const leftGradientOpacity = useTransform(x, [-200, -20, 0], [0, 0.8, 0]);
+  const rightGradientOpacity = useTransform(x, [0, 20, 200], [0, 0.8, 0]);
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -67,22 +74,39 @@ export function SwipeableAdventureCard({
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const offset = info.offset.x;
     
+    // Only trigger action if drag is significant and outside neutral zone
     if (Math.abs(offset) > SWIPE_THRESHOLD) {
-      if (offset > 0) {
-        onSwipeRight(adventure, rating);
-      } else {
+      // Convert drag offset to rating (0-100 scale)
+      const dragRating = Math.max(0, Math.min(100, 50 + (offset / 2)));
+      
+      if (dragRating < 45) {
         onSwipeLeft(adventure);
+      } else if (dragRating > 55) {
+        onSwipeRight(adventure, dragRating);
       }
+      // If dragRating is between 45-55%, do nothing (return to center)
     }
   };
 
   const handleSliderChange = (value: number[]) => {
-    setRating(value[0]);
+    const newRating = value[0];
+    
+    // If slider is in neutral zone (45-55%), snap back to 50%
+    if (newRating >= 45 && newRating <= 55) {
+      setRating(50);
+    } else {
+      setRating(newRating);
+    }
   };
 
   const handleSliderCommit = () => {
-    const isLike = rating > 50;
-    onSliderDecision(adventure, rating, isLike);
+    // Only trigger action if slider is outside the neutral zone (45-55%)
+    if (rating < 45) {
+      onSliderDecision(adventure, rating, false); // Pass
+    } else if (rating > 55) {
+      onSliderDecision(adventure, rating, true); // Save
+    }
+    // If rating is between 45-55%, do nothing (return to center)
   };
 
   const toggleActivity = (activity: string) => {
@@ -109,10 +133,10 @@ export function SwipeableAdventureCard({
   return (
     <motion.div
       ref={cardRef}
-      className="absolute inset-0 cursor-grab active:cursor-grabbing"
+      className="absolute inset-0 z-10"
       style={{
         x,
-        rotate,
+        rotate: rating === 50 ? rotate : ratingRotate, // Use drag rotation when neutral, rating rotation otherwise
         opacity,
       }}
       drag="x"
@@ -121,6 +145,25 @@ export function SwipeableAdventureCard({
       whileTap={{ cursor: 'grabbing' }}
     >
       <div className="relative w-full h-full" style={{ perspective: '1000px' }}>
+        {/* Gradient overlays for tilt direction */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-20"
+          style={{
+            opacity: leftGradientOpacity,
+          }}
+        >
+          <div className="absolute left-0 top-0 bottom-0 w-1/3 bg-gradient-to-r from-red-500/60 to-transparent rounded-l-3xl" />
+        </motion.div>
+        
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-20"
+          style={{
+            opacity: rightGradientOpacity,
+          }}
+        >
+          <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-green-500/60 to-transparent rounded-r-3xl" />
+        </motion.div>
+
         <motion.div
           className="relative w-full h-full"
           animate={{ rotateY: isFlipped ? 180 : 0 }}
@@ -143,12 +186,12 @@ export function SwipeableAdventureCard({
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               
               {/* Image counter */}
-              <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full">
+              <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-green-100 text-xs px-3 py-1.5 rounded-full">
                 {currentImageIndex + 1} / {adventure.images.length}
               </div>
 
               {/* Content overlay */}
-              <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-10">
+              <div className="absolute bottom-0 left-0 right-0 p-8 text-green-100 z-10">
                 <h2 className="text-3xl mb-3">{adventure.title}</h2>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2">
@@ -475,45 +518,47 @@ export function SwipeableAdventureCard({
         </motion.div>
       </div>
 
-      {/* Swipe indicators */}
-      <motion.div
-        className="absolute -left-4 top-1/2 -translate-y-1/2 bg-red-500 text-white px-4 py-2 rounded-full text-sm rotate-12"
-        style={{
-          opacity: useTransform(x, [-150, 0], [1, 0]),
-        }}
-      >
-        NOPE
-      </motion.div>
-      <motion.div
-        className="absolute -right-4 top-1/2 -translate-y-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm -rotate-12"
-        style={{
-          opacity: useTransform(x, [0, 150], [0, 1]),
-        }}
-      >
-        LIKE
-      </motion.div>
+       {/* Swipe indicators */}
+       <motion.div
+         className="absolute -left-4 top-1/2 -translate-y-1/2 bg-red-500 text-white px-4 py-2 rounded-full text-sm"
+         style={{
+           opacity: useTransform(x, [-150, 0], [1, 0]),
+           rotate: useTransform(x, [-200, 200], [-ROTATION_RANGE, ROTATION_RANGE]),
+         }}
+       >
+         NOPE
+       </motion.div>
+       <motion.div
+         className="absolute -right-4 top-1/2 -translate-y-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm"
+         style={{
+           opacity: useTransform(x, [0, 150], [0, 1]),
+           rotate: useTransform(x, [-200, 200], [-ROTATION_RANGE, ROTATION_RANGE]),
+         }}
+       >
+         LIKE
+       </motion.div>
 
-      {/* Bottom Slider - Only visible when front is showing */}
-      {!isFlipped && (
-        <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg z-20">
-          <div className="flex items-center justify-between mb-2 text-sm text-green-800/70">
-            <span>Not interested</span>
-            <span>Love it!</span>
-          </div>
-          <Slider
-            value={[rating]}
-            onValueChange={handleSliderChange}
-            onValueCommit={handleSliderCommit}
-            min={0}
-            max={100}
-            step={1}
-            className="mb-2"
-          />
-          <div className="text-center text-xs text-green-600">
-            Slide and release to decide
-          </div>
-        </div>
-      )}
+       {/* Bottom Slider - Only visible when front is showing */}
+       {!isFlipped && (
+         <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg z-30">
+           <div className="flex items-center justify-between mb-2 text-sm text-green-800/70">
+             <span>Not interested</span>
+             <span>Love it!</span>
+           </div>
+           <Slider
+             value={[rating]}
+             onValueChange={handleSliderChange}
+             onValueCommit={handleSliderCommit}
+             min={0}
+             max={100}
+             step={1}
+             className="mb-2"
+           />
+           <div className="text-center text-xs text-green-600">
+             Slide and release to decide
+           </div>
+         </div>
+       )}
     </motion.div>
   );
 }
