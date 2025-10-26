@@ -90,11 +90,6 @@ export function FeedTab({
           )}
         </AnimatePresence>
       </div>
-
-      {/* Counter */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-black/90 text-white px-4 py-2 rounded-full text-sm">
-        {currentIndex + 1} / {adventures.length}
-      </div>
     </div>
   );
 }
