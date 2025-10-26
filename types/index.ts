@@ -13,6 +13,7 @@ export interface Friend {
 
 export interface GroupMember extends Friend {
   budget?: number;
+  currency?: string;
   preferences?: string[];
   transportation?: string;
   travelDistance?: number;

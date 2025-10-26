@@ -4,6 +4,7 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { 
   User, 
   DollarSign, 
@@ -11,7 +12,10 @@ import {
   X as XIcon, 
   Plus,
   Save,
-  X
+  X,
+  MapPin,
+  Car,
+  Route
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { GroupMember } from '../types';
@@ -32,10 +36,30 @@ const availableActivities = [
   'Diving', 'Surfing', 'Camping'
 ];
 
+const currencies = [
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'GBP', symbol: '£', name: 'British Pound' },
+  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+  { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+  { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
+  { code: 'SEK', symbol: 'kr', name: 'Swedish Krona' },
+  { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone' },
+  { code: 'DKK', symbol: 'kr', name: 'Danish Krone' }
+];
+
+const transportationOptions = [
+  'Car', 'Train', 'Bus', 'Plane', 'Bike', 'Walking', 'Public Transport', 'Rental Car', 'Taxi/Uber'
+];
+
 export function MemberProfileEdit({ member, isOpen, onClose, onSave }: MemberProfileEditProps) {
   const [name, setName] = useState(member.name);
   const [budget, setBudget] = useState(member.budget?.toString() || '');
+  const [currency, setCurrency] = useState(member.currency || 'USD');
   const [preferences, setPreferences] = useState<string[]>(member.preferences || []);
+  const [transportation, setTransportation] = useState(member.transportation || '');
+  const [travelDistance, setTravelDistance] = useState(member.travelDistance?.toString() || '');
   const [customPreference, setCustomPreference] = useState('');
 
   const handleSave = () => {
@@ -48,7 +72,11 @@ export function MemberProfileEdit({ member, isOpen, onClose, onSave }: MemberPro
       ...member,
       name: name.trim(),
       budget: budget ? parseInt(budget) : undefined,
-      preferences: preferences
+      currency: currency,
+      preferences: preferences,
+      transportation: transportation || undefined,
+      travelDistance: travelDistance ? parseInt(travelDistance) : undefined,
+      hasProvidedInput: true
     };
 
     onSave(updatedMember);
@@ -101,15 +129,30 @@ export function MemberProfileEdit({ member, isOpen, onClose, onSave }: MemberPro
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
-              Budget (USD)
+              Budget
             </label>
-            <Input
-              type="number"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              placeholder="Enter your budget (optional)"
-              min="0"
-            />
+            <div className="flex gap-2">
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((curr) => (
+                    <SelectItem key={curr.code} value={curr.code}>
+                      {curr.symbol} {curr.code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                type="number"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                placeholder="Enter amount (optional)"
+                min="0"
+                className="flex-1"
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
               Leave empty if you don't want to specify a budget
             </p>
@@ -197,6 +240,47 @@ export function MemberProfileEdit({ member, isOpen, onClose, onSave }: MemberPro
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Transportation */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Car className="w-4 h-4" />
+              Preferred Transportation
+            </label>
+            <Select value={transportation} onValueChange={setTransportation}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select transportation (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {transportationOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Leave empty if you don't have a preference
+            </p>
+          </div>
+
+          {/* Travel Distance */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Route className="w-4 h-4" />
+              Maximum Travel Distance (km)
+            </label>
+            <Input
+              type="number"
+              value={travelDistance}
+              onChange={(e) => setTravelDistance(e.target.value)}
+              placeholder="Enter maximum distance (optional)"
+              min="0"
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave empty if you don't want to specify a limit
+            </p>
           </div>
 
           {/* Action Buttons */}

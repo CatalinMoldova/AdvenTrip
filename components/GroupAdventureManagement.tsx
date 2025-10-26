@@ -62,16 +62,16 @@ export function GroupAdventureManagement({
     // Minimum budget
     const budgets = members.map(m => m.budget).filter(Boolean);
     const minBudget = budgets.length > 0 ? Math.min(...budgets) : undefined;
+    const minBudgetMember = members.find(m => m.budget === minBudget);
+    const budgetCurrency = minBudgetMember?.currency || '$';
     
     // Transportation preferences
-    const transportOptions = ['car', 'plane', 'train', 'bus', 'bike'];
-    const transportations = members.map(m => 
-      m.preferences?.find(p => transportOptions.includes(p.toLowerCase()))
-    ).filter(Boolean);
+    const transportations = members.map(m => m.transportation).filter(Boolean);
     
     return {
       commonInterests,
       minBudget,
+      budgetCurrency,
       transportations: [...new Set(transportations)]
     };
   };
@@ -352,7 +352,7 @@ export function GroupAdventureManagement({
                     <div>
                       <p className="text-sm text-gray-500">Group Budget</p>
                       <p className="font-semibold">
-                        {summary.minBudget ? `$${summary.minBudget.toLocaleString()}` : 'Not specified'}
+                        {summary.minBudget ? `${summary.budgetCurrency}${summary.minBudget.toLocaleString()}` : 'Undefined'}
                       </p>
                     </div>
 
@@ -411,7 +411,7 @@ export function GroupAdventureManagement({
                                 {member.name}
                               </h3>
                               <p className="text-sm text-gray-500">
-                                Budget: ${member.budget?.toLocaleString() || 'Not set'}
+                                Budget: {member.budget ? `${member.currency || '$'}${member.budget.toLocaleString()}` : 'Undefined'}
                               </p>
                               <div className="flex flex-wrap gap-1 mt-2">
                                 {member.preferences?.slice(0, 2).map((pref) => (

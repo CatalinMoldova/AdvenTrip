@@ -317,6 +317,7 @@ function GroupJoinPage() {
             email: newUser.email,
             avatar: newUser.avatar,
             budget: newUser.budget,
+            currency: 'USD',
             preferences: newUser.interests
           }
         ]
