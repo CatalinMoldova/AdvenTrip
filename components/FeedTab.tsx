@@ -1,48 +1,57 @@
 import { useState } from 'react';
-import { Adventure } from '../types';
+import { Adventure, AdventureRequest } from '../types';
 import { SwipeableAdventureCard } from './SwipeableAdventureCard';
-import { motion, AnimatePresence } from 'motion/react';
-import { toast } from 'sonner@2.0.3';
-import { Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { Sparkles, Compass, Users } from 'lucide-react';
 
 interface FeedTabProps {
   adventures: Adventure[];
-  onSaveTrip?: (adventure: Adventure, rating: number) => void;
+  onSaveTrip?: (adventure: Adventure, rating: number, feedType?: string, adventureRequest?: AdventureRequest) => void;
   onDiscardTrip?: (adventure: Adventure) => void;
   startLocation?: string;
+  currentFeed?: string;
+  currentAdventureRequest?: AdventureRequest;
 }
 
 export function FeedTab({ 
   adventures, 
   onSaveTrip, 
   onDiscardTrip,
-  startLocation 
+  startLocation,
+  currentFeed = 'for-you',
+  currentAdventureRequest
 }: FeedTabProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [removedCards, setRemovedCards] = useState<string[]>([]);
 
   const handleSwipeLeft = (adventure: Adventure) => {
     onDiscardTrip?.(adventure);
-    setRemovedCards(prev => [...prev, adventure.id]);
     toast.info('Passed', {
       description: 'Finding you better matches...',
     });
     
-    setTimeout(() => {
-      setCurrentIndex(prev => prev + 1);
-    }, 300);
+    // Simply advance to next card
+    setCurrentIndex(prev => prev + 1);
   };
 
   const handleSwipeRight = (adventure: Adventure, rating: number) => {
-    onSaveTrip?.(adventure, rating);
-    setRemovedCards(prev => [...prev, adventure.id]);
+    console.log('handleSwipeRight called:', { adventure: adventure.title, currentFeed, currentAdventureRequest: currentAdventureRequest?.name });
+    
+    onSaveTrip?.(adventure, rating, currentFeed, currentAdventureRequest);
+    
+    const saveMessage = currentFeed === 'for-you' 
+      ? `${adventure.title} added to your saved trips` 
+      : `${adventure.title} added to ${currentAdventureRequest?.name || 'adventure'} folder`;
+    
     toast.success('Saved! 🎉', {
-      description: `${adventure.title} added to your adventures`,
+      description: saveMessage,
     });
     
-    setTimeout(() => {
-      setCurrentIndex(prev => prev + 1);
-    }, 300);
+    // Simply advance to next card
+    setCurrentIndex(prev => {
+      console.log('Advancing to next card, current index:', prev);
+      return prev + 1;
+    });
   };
 
   const handleSliderDecision = (adventure: Adventure, rating: number, isLike: boolean) => {
@@ -54,8 +63,14 @@ export function FeedTab({
   };
 
   const visibleAdventures = adventures.filter(
-    (adv, idx) => idx >= currentIndex && !removedCards.includes(adv.id)
+    (adv, idx) => idx >= currentIndex
   );
+  
+  console.log('Feed state:', { 
+    currentIndex, 
+    totalAdventures: adventures.length, 
+    visibleAdventures: visibleAdventures.length 
+  });
 
   if (visibleAdventures.length === 0) {
     return (
@@ -74,9 +89,32 @@ export function FeedTab({
   }
 
   return (
-    <div className="h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="h-screen bg-white flex flex-col p-6 relative overflow-hidden">
+      {/* Feed Header */}
+      <div className="flex items-center justify-center mb-4">
+        <div className="flex items-center gap-2 px-4 py-2 bg-black/5 rounded-full">
+          {currentFeed === 'for-you' ? (
+            <>
+              <Sparkles className="w-4 h-4 text-purple-500" />
+              <span className="text-sm font-medium text-gray-900">For You</span>
+            </>
+          ) : (
+            <>
+              {currentAdventureRequest?.mode === 'group' ? (
+                <Users className="w-4 h-4 text-blue-500" />
+              ) : (
+                <Compass className="w-4 h-4 text-blue-500" />
+              )}
+              <span className="text-sm font-medium text-gray-900">
+                {currentAdventureRequest?.name || 'Adventure'}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Card Stack - only show current card */}
-      <div className="relative w-full max-w-lg" style={{ height: '75vh' }}>
+      <div className="relative w-full max-w-lg flex-1 flex items-center justify-center">
         <AnimatePresence>
           {visibleAdventures.length > 0 && (
             <SwipeableAdventureCard

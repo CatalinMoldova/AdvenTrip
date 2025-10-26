@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { AdventureRequest, User, GroupMember } from '../types';
-import { ChevronLeft, Check, Share2, Copy } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { ChevronLeft, Check, Share2, Copy, X, Calendar as CalendarIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import { LocationAutocomplete } from './LocationAutocomplete';
+import { Calendar } from './ui/calendar';
 
 interface CreateAdventureWizardProps {
   isOpen: boolean;
@@ -40,40 +42,65 @@ const seasonOptions = [
 
 export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user }: CreateAdventureWizardProps) {
   const [step, setStep] = useState(0);
-  const [name, setName] = useState(user?.name || '');
+  const [adventureName, setAdventureName] = useState('');
   const [location, setLocation] = useState(user?.location || '');
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [isLocationValid, setIsLocationValid] = useState(false);
   const [activities, setActivities] = useState<string[]>([]);
   const [season, setSeason] = useState<string>('');
-  const [duration, setDuration] = useState('');
-  const [transport, setTransport] = useState<string>(
-    user?.interests?.find(i => transportOptions.some(t => t.id === i.toLowerCase())) || ''
-  );
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [transport, setTransport] = useState<string>('');
   const [mode, setMode] = useState<'individual' | 'group' | null>(null);
   const [inviteLink, setInviteLink] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
-  const totalSteps = 7;
+  const totalSteps = 6;
 
   const handleClose = () => {
     setStep(0);
-    setName(user?.name || '');
+    setAdventureName('');
     setLocation(user?.location || '');
+    setSelectedLocation(null);
+    setIsLocationValid(false);
     setActivities([]);
     setSeason('');
-    setDuration('');
-    setTransport(user?.interests?.[0] || '');
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setTransport('');
     setMode(null);
     setInviteLink('');
+    setIsCreating(false);
     onClose();
+  };
+
+  const handleLocationSelect = (locationData: any) => {
+    setSelectedLocation(locationData);
+    // You can also store coordinates if needed for future features
+    console.log('Selected location:', locationData);
+  };
+
+  const handleLocationChange = (newLocation: string) => {
+    setLocation(newLocation);
+    // Clear selectedLocation if user is typing (not selecting from dropdown)
+    if (!newLocation) {
+      setSelectedLocation(null);
+      setIsLocationValid(false);
+    }
+  };
+
+  const handleLocationValidationChange = (isValid: boolean) => {
+    setIsLocationValid(isValid);
   };
 
   const handleNext = () => {
     // Validation
-    if (step === 0 && !name.trim()) {
-      toast.error('Please enter your name');
+    if (step === 0 && !adventureName.trim()) {
+      toast.error('Please enter an adventure name');
       return;
     }
-    if (step === 1 && !location.trim()) {
-      toast.error('Please enter your location');
+    if (step === 1 && (!location.trim() || !isLocationValid)) {
+      toast.error('Please select a valid location from the suggestions');
       return;
     }
     if (step === 2 && activities.length === 0) {
@@ -84,12 +111,12 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       toast.error('Please select a season');
       return;
     }
-    if (step === 4 && (!duration || parseInt(duration) < 1)) {
-      toast.error('Please enter a valid duration');
+    if (step === 4 && (!startDate || !endDate)) {
+      toast.error('Please select both departure and return dates');
       return;
     }
-    if (step === 5 && !transport) {
-      toast.error('Please select a means of transport');
+    if (step === 4 && startDate && endDate && startDate >= endDate) {
+      toast.error('Return date must be after departure date');
       return;
     }
 
@@ -113,6 +140,9 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
   };
 
   const handleModeSelection = (selectedMode: 'individual' | 'group') => {
+    if (isCreating) return; // Prevent multiple calls
+    
+    setIsCreating(true);
     setMode(selectedMode);
     
     if (selectedMode === 'group') {
@@ -120,13 +150,43 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       const linkId = Math.random().toString(36).substring(7);
       const link = `${window.location.origin}/join/${linkId}`;
       setInviteLink(link);
+      
+      // Create group adventure request
+      const request: AdventureRequest = {
+        id: linkId, // Use the same ID as the invite link
+        name: adventureName.trim(),
+        userId: user?.id || '1',
+        mode: 'group',
+        numberOfDays: startDate && endDate ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) : 0,
+        startDate: startDate?.toISOString(),
+        endDate: endDate?.toISOString(),
+        activities: activities.map(a => a.replace(/[^\w\s]/g, '').trim()),
+        customActivities: [],
+        transportation: transport,
+        inviteLink: link,
+        groupMembers: [{
+          id: user?.id || '1',
+          name: user?.name || 'Traveler',
+          email: user?.email || '',
+          avatar: user?.avatar || '',
+          budget: user?.budget || 1000,
+          preferences: activities.map(a => a.replace(/[^\w\s]/g, '').trim())
+        }],
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      
+      onCreateAdventure(request);
     } else {
       // Create adventure immediately for individual mode
       const request: AdventureRequest = {
         id: Math.random().toString(36).substring(7),
+        name: adventureName.trim(),
         userId: user?.id || '1',
         mode: 'individual',
-        numberOfDays: parseInt(duration),
+        numberOfDays: startDate && endDate ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) : 0,
+        startDate: startDate?.toISOString(),
+        endDate: endDate?.toISOString(),
         activities: activities.map(a => a.replace(/[^\w\s]/g, '').trim()),
         customActivities: [],
         transportation: transport,
@@ -162,13 +222,13 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">What's your name?</h2>
-              <p className="text-sm text-black/60">Let's personalize your adventure</p>
+              <h2 className="text-2xl text-black mb-2">What's your adventure called?</h2>
+              <p className="text-sm text-black/60">Give your adventure a memorable name</p>
             </div>
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
+              value={adventureName}
+              onChange={(e) => setAdventureName(e.target.value)}
+              placeholder="e.g., Summer Road Trip, Beach Getaway"
               className="text-center text-lg border-0 bg-black/5 rounded-xl px-6 py-4 text-black"
               autoFocus
             />
@@ -182,13 +242,22 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
               <h2 className="text-2xl text-black mb-2">Where are you?</h2>
               <p className="text-sm text-black/60">Your starting point</p>
             </div>
-            <Input
+            <LocationAutocomplete
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="City, Country"
+              onChange={handleLocationChange}
+              onSelect={handleLocationSelect}
+              onValidationChange={handleLocationValidationChange}
+              placeholder="Start typing a city or location..."
               className="text-center text-lg border-0 bg-black/5 rounded-xl px-6 py-4 text-black"
               autoFocus
             />
+            {location && !isLocationValid && (
+              <div className="text-center">
+                <p className="text-sm text-red-500">
+                  Please select a location from the suggestions above
+                </p>
+              </div>
+            )}
           </div>
         );
 
@@ -267,40 +336,61 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       case 4:
         return (
           <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">How long will it last?</h2>
-              <p className="text-sm text-black/60">Number of days</p>
+            <div className="text-center mb-6">
+              <h2 className="text-2xl text-black mb-2">When do you want to travel?</h2>
+              <p className="text-sm text-black/60">Select your departure and return dates</p>
             </div>
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setDuration(String(Math.max(1, parseInt(duration || '1') - 1)))}
-                className="w-12 h-12 rounded-full border-black/20 text-black"
-              >
-                -
-              </Button>
-              <Input
-                type="number"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="0"
-                className="text-center text-3xl border-0 bg-black/5 rounded-xl w-32 h-20 text-black"
-                min="1"
-                autoFocus
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <CalendarIcon className="w-5 h-5 text-black/60" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-black">Departure Date</p>
+                  <p className="text-xs text-black/60">
+                    {startDate ? startDate.toLocaleDateString() : 'Select departure date'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <CalendarIcon className="w-5 h-5 text-black/60" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-black">Return Date</p>
+                  <p className="text-xs text-black/60">
+                    {endDate ? endDate.toLocaleDateString() : 'Select return date'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border border-black/10 rounded-xl p-4">
+              <Calendar
+                mode="range"
+                selected={{ from: startDate, to: endDate }}
+                onSelect={(range) => {
+                  if (range?.from) {
+                    setStartDate(range.from);
+                  }
+                  if (range?.to) {
+                    setEndDate(range.to);
+                  }
+                }}
+                disabled={(date) => date < new Date()}
+                className="w-full"
               />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setDuration(String(parseInt(duration || '0') + 1))}
-                className="w-12 h-12 rounded-full border-black/20 text-black"
-              >
-                +
-              </Button>
             </div>
-            <p className="text-center text-black/60 text-sm">
-              {duration ? `${duration} ${parseInt(duration) === 1 ? 'day' : 'days'}` : 'Enter duration'}
-            </p>
+
+            {startDate && endDate && (
+              <div className="text-center p-3 bg-black/5 rounded-xl">
+                <p className="text-sm text-black">
+                  <span className="font-semibold">
+                    {Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} 
+                    {Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) === 1 ? ' day' : ' days'}
+                  </span>
+                  {' '}trip selected
+                </p>
+              </div>
+            )}
           </div>
         );
 
@@ -317,7 +407,9 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                 return (
                   <motion.button
                     key={t.id}
-                    onClick={() => setTransport(t.id)}
+                    onClick={() => {
+                      setTransport(t.id);
+                    }}
                     className={`w-full p-4 rounded-2xl text-left transition-all border ${
                       isSelected
                         ? 'bg-black text-white border-black'
@@ -336,103 +428,25 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                 );
               })}
             </div>
-          </div>
-        );
-
-      case 6:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">Choose your adventure type</h2>
-              <p className="text-sm text-black/60">Solo or with friends?</p>
-            </div>
             
-            {!mode ? (
-              <div className="space-y-4">
-                <motion.button
-                  onClick={() => handleModeSelection('individual')}
-                  className="w-full p-6 rounded-2xl bg-white border border-black/10 text-left transition-all hover:border-black"
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-2xl">
-                      🌍
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-black mb-1">Solo Adventure</div>
-                      <div className="text-xs text-black/60">
-                        Plan your personal journey
-                      </div>
-                    </div>
-                  </div>
-                </motion.button>
-
-                <motion.button
-                  onClick={() => handleModeSelection('group')}
-                  className="w-full p-6 rounded-2xl bg-white border border-black/10 text-left transition-all hover:border-black"
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-2xl">
-                      👥
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-black mb-1">Group Adventure</div>
-                      <div className="text-xs text-black/60">
-                        Invite friends to plan together
-                      </div>
-                    </div>
-                  </div>
-                </motion.button>
-              </div>
-            ) : mode === 'group' && inviteLink ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="bg-black rounded-2xl p-6 text-white text-center">
-                  <div className="text-4xl mb-3">🎉</div>
-                  <h3 className="text-xl mb-2">Group Adventure Created!</h3>
-                  <p className="text-sm opacity-90">Share this link with your friends</p>
-                </div>
-
-                <div className="bg-black/5 rounded-2xl p-4">
-                  <p className="text-xs text-black/60 mb-2">INVITE LINK</p>
-                  <div className="bg-white rounded-xl p-3 break-all text-sm text-black border border-black/10">
-                    {inviteLink}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Button
-                    onClick={shareInviteLink}
-                    className="w-full bg-black hover:bg-black/80 text-white rounded-xl h-12"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share Link
-                  </Button>
-                  <Button
-                    onClick={copyInviteLink}
-                    variant="outline"
-                    className="w-full rounded-xl h-12 border-black/20 text-black"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Link
-                  </Button>
-                </div>
-
+            {transport && (
+              <div className="pt-4">
                 <Button
-                  onClick={handleClose}
-                  variant="ghost"
-                  className="w-full text-black"
+                  onClick={() => {
+                    if (isCreating) return;
+                    handleModeSelection('group');
+                    handleClose(); // Close the wizard after creation
+                  }}
+                  disabled={isCreating}
+                  className="w-full bg-black hover:bg-black/80 text-white rounded-xl h-12"
                 >
-                  Done
+                  {isCreating ? 'Creating...' : 'Create Adventure'}
                 </Button>
-              </motion.div>
-            ) : null}
+              </div>
+            )}
           </div>
         );
+
 
       default:
         return null;
@@ -444,7 +458,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-3xl p-0 border-0">
         <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-black/10 px-6 py-4 z-10">
           <div className="flex items-center justify-between">
-            {step > 0 && step < 6 && (
+            {step > 0 && step < totalSteps - 1 && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -456,14 +470,21 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
             )}
             <div className="flex-1 text-center">
               <div className="text-xs text-black/60">
-                {step < 6 ? `Step ${step + 1} of ${totalSteps}` : 'Final Step'}
+                {step < totalSteps - 1 ? `Step ${step + 1} of ${totalSteps}` : 'Final Step'}
               </div>
             </div>
-            <div className="w-10" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleClose}
+              className="rounded-full text-black hover:bg-black/10"
+            >
+              <X className="w-5 h-5" />
+            </Button>
           </div>
           
           {/* Progress Bar */}
-          {step < 6 && (
+          {step < totalSteps - 1 && (
             <div className="mt-3 h-1 bg-black/10 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-black rounded-full"
@@ -489,7 +510,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </AnimatePresence>
         </div>
 
-        {step < 6 && (
+        {step < totalSteps - 1 && (
           <div className="sticky bottom-0 bg-white border-t border-black/10 px-6 py-4">
             <Button
               onClick={handleNext}
