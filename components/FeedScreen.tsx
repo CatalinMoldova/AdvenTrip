@@ -43,27 +43,27 @@ export function FeedScreen({ adventures, user, onCreateGroup, onViewSaved }: Fee
   const allActivities = Array.from(new Set(adventures.flatMap(a => a.activities)));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-lg border-b border-purple-100 sticky top-0 z-10 shadow-sm">
+      <div className="bg-green-100/80 backdrop-blur-lg border-b border-green-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-5">
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-white">✨</span>
                 </div>
-                <h1 className="text-gray-900 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">nomadiq</h1>
+                <h1 className="text-green-800 bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">AdvenTrip</h1>
               </div>
-              <p className="text-gray-600 text-sm">
+              <p className="text-green-700 text-sm">
                 Hey {user.name}! Discover amazing adventures from {user.location}
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={onViewSaved} className="border-purple-200 hover:bg-purple-50">
+              <Button variant="outline" onClick={onViewSaved} className="border-green-200 hover:bg-green-50 text-green-700">
                 View Saved
               </Button>
-              <Button onClick={onCreateGroup} className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md">
+              <Button onClick={onCreateGroup} className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md">
                 <Users className="w-4 h-4" />
                 Create Group
               </Button>
@@ -73,16 +73,16 @@ export function FeedScreen({ adventures, user, onCreateGroup, onViewSaved }: Fee
           {/* Search & Filter */}
           <div className="flex gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400" />
               <Input
                 placeholder="Search destinations, activities..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-green-50 border-green-200"
               />
             </div>
             <Select value={filterActivity} onValueChange={setFilterActivity}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48 bg-green-50 border-green-200">
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
@@ -103,7 +103,7 @@ export function FeedScreen({ adventures, user, onCreateGroup, onViewSaved }: Fee
       <div className="max-w-7xl mx-auto px-4 py-8">
         {filteredAdventures.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600">No adventures found matching your criteria.</p>
+            <p className="text-green-600">No adventures found matching your criteria.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

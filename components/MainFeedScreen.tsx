@@ -9,6 +9,7 @@ import { AdventureFeedCard } from './AdventureFeedCard';
 import { CreateAdventureModal } from './CreateAdventureModal';
 import { AdventureDetailView } from './AdventureDetailView';
 import { MapItineraryView } from './MapItineraryView';
+import { AdvenTripLogo } from './ui/AdvenTripLogo';
 
 interface MainFeedScreenProps {
   user: User;
@@ -58,17 +59,17 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   }));
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 flex flex-col">
+    <div className="flex-1 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur border-b border-purple-100 p-4 shadow-sm">
+      <div className="bg-white/80 backdrop-blur border-b border-green-100 p-4 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-md">
-              <Compass className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md">
+              <AdvenTripLogo size="md" className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                NOMADIQ
+              <h1 className="text-2xl font-black font-display tracking-tight bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+                AdvenTrip
               </h1>
               <p className="text-xs text-gray-600">Welcome back, {user.name}</p>
             </div>

@@ -11,7 +11,6 @@ interface AdventuresTabProps {
   adventures: Adventure[];
   onCreateNew: () => void;
   onSaveToFolder?: (folderId: string, adventure: Adventure, rating: number) => void;
-  onGroupAdventureClick?: (adventureRequest: AdventureRequest) => void;
   user: User | null;
 }
 
@@ -30,16 +29,15 @@ export function AdventuresTab({
   adventures,
   onCreateNew,
   onSaveToFolder,
-  onGroupAdventureClick,
   user 
 }: AdventuresTabProps) {
   // Create folders from adventure requests
   const [folders, setFolders] = useState<AdventureFolder[]>(
     adventureRequests.map(req => ({
       id: req.id,
-      name: req.name || (req.groupMembers && req.groupMembers.length > 0 
+      name: req.groupMembers && req.groupMembers.length > 0 
         ? `Trip with ${req.groupMembers.map(m => m.name).join(', ')}`
-        : `${req.activities[0] || 'Adventure'} Trip`),
+        : `${req.activities[0] || 'Adventure'} Trip`,
       mode: req.mode,
       members: req.groupMembers,
       savedAdventures: [],
@@ -116,19 +114,19 @@ export function AdventuresTab({
   // Folder view
   if (!selectedFolder) {
     return (
-      <div className="h-screen bg-white flex flex-col">
+      <div className="h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex flex-col">
         {/* Header */}
-        <div className="border-b border-black/10 p-6">
+        <div className="border-b border-green-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl text-black mb-1">Your Adventures</h1>
-              <p className="text-sm text-black/60">
+              <h1 className="text-2xl text-green-800 mb-1">Your Adventures</h1>
+              <p className="text-sm text-green-600">
                 {folders.length} {folders.length === 1 ? 'folder' : 'folders'}
               </p>
             </div>
             <Button
               onClick={onCreateNew}
-              className="bg-black hover:bg-black/80 text-white rounded-full"
+              className="bg-green-500 hover:bg-green-600 text-white rounded-full"
             >
               <Plus className="w-5 h-5 mr-2" />
               New Adventure
@@ -141,16 +139,16 @@ export function AdventuresTab({
           {folders.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-sm">
-                <div className="w-20 h-20 mx-auto mb-4 bg-black/5 rounded-full flex items-center justify-center">
-                  <FolderOpen className="w-10 h-10 text-black/40" />
+                <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                  <FolderOpen className="w-10 h-10 text-green-400" />
                 </div>
-                <h3 className="text-xl text-black mb-2">No adventures yet</h3>
-                <p className="text-black/60 mb-6">
+                <h3 className="text-xl text-green-800 mb-2">No adventures yet</h3>
+                <p className="text-green-600 mb-6">
                   Create your first adventure to start planning your perfect trip
                 </p>
                 <Button
                   onClick={onCreateNew}
-                  className="bg-black hover:bg-black/80 text-white rounded-xl"
+                  className="bg-green-500 hover:bg-green-600 text-white rounded-xl"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Create Adventure
@@ -169,38 +167,30 @@ export function AdventuresTab({
                   <motion.button
                     key={folder.id}
                     onClick={() => {
-                      if (folder.mode === 'group' && onGroupAdventureClick) {
-                        // Find the adventure request for this folder
-                        const adventureRequest = adventureRequests.find(req => req.id === folder.id);
-                        if (adventureRequest) {
-                          onGroupAdventureClick(adventureRequest);
-                        }
-                      } else {
-                        setSelectedFolder(folder.id);
-                        setCurrentFeedIndex(0);
-                      }
+                      setSelectedFolder(folder.id);
+                      setCurrentFeedIndex(0);
                     }}
-                    className="bg-white border border-black/10 rounded-2xl p-6 text-left hover:border-black/30 transition-all hover:shadow-lg"
+                    className="bg-green-50 border border-green-200 rounded-2xl p-6 text-left hover:border-green-300 transition-all hover:shadow-lg"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-black/5 rounded-xl flex items-center justify-center">
+                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                           {folder.mode === 'group' ? (
-                            <Users className="w-6 h-6 text-black" />
+                            <Users className="w-6 h-6 text-green-600" />
                           ) : (
-                            <UserIcon className="w-6 h-6 text-black" />
+                            <UserIcon className="w-6 h-6 text-green-600" />
                           )}
                         </div>
                         <div>
-                          <h3 className="text-black mb-1">{folder.name}</h3>
-                          <p className="text-xs text-black/60">
+                          <h3 className="text-green-800 mb-1">{folder.name}</h3>
+                          <p className="text-xs text-green-600">
                             {folder.mode === 'group' ? 'Group Adventure' : 'Solo Adventure'}
                           </p>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-black/40" />
+                      <ChevronRight className="w-5 h-5 text-green-400" />
                     </div>
 
                     {/* Members (if group) */}
@@ -210,13 +200,13 @@ export function AdventuresTab({
                           {folder.members.slice(0, 3).map((member) => (
                             <div
                               key={member.id}
-                              className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-xs border-2 border-white"
+                              className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-xs border-2 border-white"
                             >
                               {member.avatar || member.name[0]}
                             </div>
                           ))}
                         </div>
-                        <span className="text-xs text-black/60">
+                        <span className="text-xs text-green-600">
                           {folder.members.length} {folder.members.length === 1 ? 'member' : 'members'}
                         </span>
                       </div>
@@ -224,25 +214,25 @@ export function AdventuresTab({
 
                     {/* Progress */}
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs text-black/60">
+                      <div className="flex items-center justify-between text-xs text-green-600">
                         <span>Progress</span>
                         <span>{folder.savedAdventures.length} saved</span>
                       </div>
-                      <div className="h-2 bg-black/5 rounded-full overflow-hidden">
+                      <div className="h-2 bg-green-100 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-black transition-all"
+                          className="h-full bg-green-500 transition-all"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
                     </div>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-4 mt-4 pt-4 border-t border-black/10 text-xs text-black/60">
+                    <div className="flex items-center gap-4 mt-4 pt-4 border-t border-green-200 text-xs text-green-600">
                       <div>
-                        <span className="text-black">{folderAdventures.length}</span> options
+                        <span className="text-green-800">{folderAdventures.length}</span> options
                       </div>
                       <div>
-                        <span className="text-black">{folder.discardedAdventures.length}</span> passed
+                        <span className="text-green-800">{folder.discardedAdventures.length}</span> passed
                       </div>
                     </div>
                   </motion.button>
@@ -257,17 +247,17 @@ export function AdventuresTab({
 
   // Feed view for selected folder
   return (
-    <div className="h-screen bg-white flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex flex-col">
       {/* Header */}
-      <div className="border-b border-black/10 p-4 flex items-center justify-between">
+      <div className="border-b border-green-200 p-4 flex items-center justify-between">
         <button
           onClick={() => setSelectedFolder(null)}
-          className="flex items-center gap-2 text-black hover:text-black/70"
+          className="flex items-center gap-2 text-green-700 hover:text-green-600"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Folders</span>
         </button>
-        <div className="text-sm text-black/60">
+        <div className="text-sm text-green-600">
           {currentFolder?.name}
         </div>
       </div>
@@ -277,17 +267,17 @@ export function AdventuresTab({
         {visibleAdventures.length === 0 ? (
           <div className="h-full flex items-center justify-center p-6">
             <div className="text-center max-w-md">
-              <div className="w-20 h-20 mx-auto mb-4 bg-black/5 rounded-full flex items-center justify-center">
-                <FolderOpen className="w-10 h-10 text-black/40" />
+              <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <FolderOpen className="w-10 h-10 text-green-400" />
               </div>
-              <h3 className="text-xl text-black mb-2">All done!</h3>
-              <p className="text-black/60 mb-6">
+              <h3 className="text-xl text-green-800 mb-2">All done!</h3>
+              <p className="text-green-600 mb-6">
                 You've reviewed all adventures for this folder. 
                 {currentFolder?.mode === 'group' && ' Share with your group to see their picks!'}
               </p>
               <Button
                 onClick={() => setSelectedFolder(null)}
-                className="bg-black hover:bg-black/80 text-white rounded-xl"
+                className="bg-green-500 hover:bg-green-600 text-white rounded-xl"
               >
                 Back to Folders
               </Button>
@@ -317,17 +307,17 @@ export function AdventuresTab({
             </div>
 
             {/* Counter */}
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-black/90 text-white px-4 py-2 rounded-full text-sm">
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm">
               {currentFeedIndex + 1} / {visibleAdventures.length}
             </div>
 
             {/* Group Mode: Show what friends liked */}
             {currentFolder?.mode === 'group' && currentFolder.savedAdventures.length > 0 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white border border-black/10 rounded-xl p-3 shadow-lg max-w-xs">
-                <div className="text-xs text-black/60 mb-1">Group Favorites</div>
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-green-50 border border-green-200 rounded-xl p-3 shadow-lg max-w-xs">
+                <div className="text-xs text-green-600 mb-1">Group Favorites</div>
                 <div className="flex items-center gap-2">
                   {currentFolder.savedAdventures.slice(0, 3).map((saved, idx) => (
-                    <div key={idx} className="text-xs text-black">
+                    <div key={idx} className="text-xs text-green-800">
                       {saved.adventure.title.split(' ')[0]}
                     </div>
                   ))}

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { MapPin, Sparkles, ArrowRight, Compass, Plus, X as XIcon } from 'lucide-react';
 import { User } from '../types';
 import { LocationAutocomplete } from './LocationAutocomplete';
+import { AdvenTripLogo } from './ui/AdvenTripLogo';
 
 interface OnboardingScreenProps {
   onComplete: (user: User) => void;
@@ -81,7 +82,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           name: 'Traveler',
           location: location,
           interests: selectedActivities,
-          avatar: undefined,
         };
         onComplete(user);
       }, 1500);
@@ -89,16 +89,16 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   };
 
   return (
-    <div className="min-h-screen w-full bg-background flex items-center justify-center p-6">
+    <div className="min-h-screen w-full bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8">
         {step === 'location' && (
           <Card className="w-full">
             <CardHeader className="text-center space-y-4">
-              <div className="w-16 h-16 mx-auto bg-primary rounded-2xl flex items-center justify-center">
-                <Compass className="w-8 h-8 text-primary-foreground" />
+              <div className="w-16 h-16 mx-auto bg-green-500 rounded-2xl flex items-center justify-center">
+                <AdvenTripLogo size="lg" className="text-white" />
               </div>
               <div className="space-y-2">
-                <CardTitle className="text-3xl">NOMADIQ</CardTitle>
+                <CardTitle className="text-3xl font-black font-display tracking-tight text-green-800">AdvenTrip</CardTitle>
                 <p className="text-muted-foreground">
                   Your journey begins here
                 </p>

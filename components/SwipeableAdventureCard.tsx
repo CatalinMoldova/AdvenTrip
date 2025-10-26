@@ -175,42 +175,42 @@ export function SwipeableAdventureCard({
           >
             <div className="h-full overflow-y-auto">
               {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-black/10 p-4 flex items-center justify-between z-10">
-                <h3 className="text-lg text-black">Customize Your Trip</h3>
+              <div className="sticky top-0 bg-green-50 border-b border-green-200 p-4 flex items-center justify-between z-10">
+                <h3 className="text-lg text-green-800">Customize Your Trip</h3>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsFlipped(false);
                   }}
-                  className="w-8 h-8 bg-black/5 rounded-full flex items-center justify-center"
+                  className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
                 >
-                  <XIcon className="w-4 h-4 text-black" />
+                  <XIcon className="w-4 h-4 text-green-600" />
                 </button>
               </div>
 
               <div className="p-6 space-y-6">
                 {/* Destination Info */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-black/60 text-sm">
+                  <div className="flex items-center gap-2 text-green-600 text-sm">
                     <MapPin className="w-4 h-4" />
                     <span>Destination</span>
                   </div>
-                  <div className="text-xl text-black">{adventure.destination}</div>
+                  <div className="text-xl text-green-800">{adventure.destination}</div>
                 </div>
 
                 {/* Duration */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-black/60 text-sm">
+                  <div className="flex items-center gap-2 text-green-600 text-sm">
                     <Calendar className="w-4 h-4" />
                     <span>Duration</span>
                   </div>
-                  <div className="text-lg text-black">{adventure.duration}</div>
+                  <div className="text-lg text-green-800">{adventure.duration}</div>
                 </div>
 
                 {/* Transportation */}
                 <div className="space-y-3 border-t border-black/10 pt-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-black/60 text-sm">
+                    <div className="flex items-center gap-2 text-green-600 text-sm">
                       <Plane className="w-4 h-4" />
                       <span>Transportation</span>
                     </div>
@@ -219,7 +219,7 @@ export function SwipeableAdventureCard({
                         onClick={() => setEditMode('transport')}
                         className="p-1 hover:bg-black/5 rounded"
                       >
-                        <Edit2 className="w-4 h-4 text-black/40" />
+                        <Edit2 className="w-4 h-4 text-green-800/40" />
                       </button>
                     )}
                   </div>
@@ -227,7 +227,7 @@ export function SwipeableAdventureCard({
                   {editMode === 'transport' ? (
                     <div className="space-y-3 bg-black/5 p-4 rounded-xl">
                       <div>
-                        <label className="text-xs text-black/60 mb-2 block">Transport Mode</label>
+                        <label className="text-xs text-green-600 mb-2 block">Transport Mode</label>
                         <Select value={transportMode} onValueChange={setTransportMode}>
                           <SelectTrigger className="bg-white">
                             <SelectValue />
@@ -243,7 +243,7 @@ export function SwipeableAdventureCard({
                       
                       {transportMode === 'flight' && (
                         <div>
-                          <label className="text-xs text-black/60 mb-2 block">
+                          <label className="text-xs text-green-600 mb-2 block">
                             Flight from {startLocation} to {adventure.destination}
                           </label>
                           <div className="space-y-2">
@@ -254,7 +254,7 @@ export function SwipeableAdventureCard({
                                 className={`w-full p-3 rounded-lg border text-left transition-all ${
                                   selectedFlight === option.id
                                     ? 'border-black bg-black text-white'
-                                    : 'border-black/20 bg-white text-black hover:border-black/40'
+                                    : 'border-black/20 bg-white text-green-800 hover:border-black/40'
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
@@ -277,7 +277,7 @@ export function SwipeableAdventureCard({
                       </Button>
                     </div>
                   ) : (
-                    <div className="text-black">
+                    <div className="text-green-800">
                       {transportMode === 'flight' ? 'Flight' : transportMode} • {
                         transportMode === 'flight' 
                           ? flightOptions.find(f => f.id === selectedFlight)?.label 
@@ -290,7 +290,7 @@ export function SwipeableAdventureCard({
                 {/* Hotel */}
                 <div className="space-y-3 border-t border-black/10 pt-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-black/60 text-sm">
+                    <div className="flex items-center gap-2 text-green-600 text-sm">
                       <HotelIcon className="w-4 h-4" />
                       <span>Accommodation</span>
                     </div>
@@ -299,14 +299,14 @@ export function SwipeableAdventureCard({
                         onClick={() => setEditMode('hotel')}
                         className="p-1 hover:bg-black/5 rounded"
                       >
-                        <Edit2 className="w-4 h-4 text-black/40" />
+                        <Edit2 className="w-4 h-4 text-green-800/40" />
                       </button>
                     )}
                   </div>
                   
                   {editMode === 'hotel' ? (
                     <div className="space-y-3 bg-black/5 p-4 rounded-xl">
-                      <label className="text-xs text-black/60">Select Hotel</label>
+                      <label className="text-xs text-green-600">Select Hotel</label>
                       <div className="space-y-2">
                         {hotelOptions.map((option) => (
                           <button
@@ -315,7 +315,7 @@ export function SwipeableAdventureCard({
                             className={`w-full p-3 rounded-lg border text-left transition-all ${
                               selectedHotel === option.name
                                 ? 'border-black bg-black text-white'
-                                : 'border-black/20 bg-white text-black hover:border-black/40'
+                                : 'border-black/20 bg-white text-green-800 hover:border-black/40'
                             }`}
                           >
                             <div className="flex items-center justify-between mb-1">
@@ -339,7 +339,7 @@ export function SwipeableAdventureCard({
                       </Button>
                     </div>
                   ) : (
-                    <div className="text-black">
+                    <div className="text-green-800">
                       {selectedHotel} • {
                         hotelOptions.find(h => h.name === selectedHotel)?.stars || adventure.hotel.rating
                       }⭐
@@ -350,13 +350,13 @@ export function SwipeableAdventureCard({
                 {/* Activities */}
                 <div className="space-y-3 border-t border-black/10 pt-4">
                   <div className="flex items-center justify-between">
-                    <div className="text-black/60 text-sm">Activities Included</div>
+                    <div className="text-green-600 text-sm">Activities Included</div>
                     {editMode !== 'activities' && (
                       <button
                         onClick={() => setEditMode('activities')}
                         className="p-1 hover:bg-black/5 rounded"
                       >
-                        <Edit2 className="w-4 h-4 text-black/40" />
+                        <Edit2 className="w-4 h-4 text-green-800/40" />
                       </button>
                     )}
                   </div>
@@ -371,7 +371,7 @@ export function SwipeableAdventureCard({
                             className={`px-3 py-1.5 rounded-full text-sm transition-all ${
                               selectedActivities.includes(activity)
                                 ? 'bg-black text-white'
-                                : 'bg-white text-black border border-black/20'
+                                : 'bg-white text-green-800 border border-black/20'
                             }`}
                           >
                             {activity}
@@ -394,7 +394,7 @@ export function SwipeableAdventureCard({
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {selectedActivities.map((activity) => (
-                        <Badge key={activity} className="bg-black/10 text-black border-0">
+                        <Badge key={activity} className="bg-black/10 text-green-800 border-0">
                           {activity}
                         </Badge>
                       ))}
@@ -404,7 +404,7 @@ export function SwipeableAdventureCard({
 
                 {/* Itinerary */}
                 <div className="space-y-3 border-t border-black/10 pt-4">
-                  <div className="text-black/60 text-sm">Day-by-Day Itinerary</div>
+                  <div className="text-green-600 text-sm">Day-by-Day Itinerary</div>
                   <div className="space-y-3">
                     {adventure.itinerary.map((day) => (
                       <div key={day.day} className="bg-black/5 p-4 rounded-xl">
@@ -412,11 +412,11 @@ export function SwipeableAdventureCard({
                           <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm">
                             {day.day}
                           </div>
-                          <div className="text-black">{day.title}</div>
+                          <div className="text-green-800">{day.title}</div>
                         </div>
                         <ul className="space-y-1 ml-10">
                           {day.activities.map((activity, idx) => (
-                            <li key={idx} className="text-sm text-black/70">
+                            <li key={idx} className="text-sm text-green-800/70">
                               • {activity}
                             </li>
                           ))}
@@ -429,7 +429,7 @@ export function SwipeableAdventureCard({
                 {/* Budget */}
                 <div className="space-y-3 border-t border-black/10 pt-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-black/60 text-sm">
+                    <div className="flex items-center gap-2 text-green-600 text-sm">
                       <DollarSign className="w-4 h-4" />
                       <span>Total Budget</span>
                     </div>
@@ -438,7 +438,7 @@ export function SwipeableAdventureCard({
                         onClick={() => setEditMode('budget')}
                         className="p-1 hover:bg-black/5 rounded"
                       >
-                        <Edit2 className="w-4 h-4 text-black/40" />
+                        <Edit2 className="w-4 h-4 text-green-800/40" />
                       </button>
                     )}
                   </div>
@@ -452,7 +452,7 @@ export function SwipeableAdventureCard({
                         className="bg-white"
                         placeholder="Enter budget"
                       />
-                      <div className="text-xs text-black/60">
+                      <div className="text-xs text-green-600">
                         Breakdown: Flight ${flightOptions.find(f => f.id === selectedFlight)?.price}, 
                         Hotel ${hotelOptions.find(h => h.name === selectedHotel)?.price}/night
                       </div>
@@ -466,7 +466,7 @@ export function SwipeableAdventureCard({
                       </Button>
                     </div>
                   ) : (
-                    <div className="text-2xl text-black">${customBudget}</div>
+                    <div className="text-2xl text-green-800">${customBudget}</div>
                   )}
                 </div>
               </div>
@@ -496,7 +496,7 @@ export function SwipeableAdventureCard({
       {/* Bottom Slider - Only visible when front is showing */}
       {!isFlipped && (
         <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg z-20">
-          <div className="flex items-center justify-between mb-2 text-sm text-black/70">
+          <div className="flex items-center justify-between mb-2 text-sm text-green-800/70">
             <span>Not interested</span>
             <span>Love it!</span>
           </div>
@@ -509,7 +509,7 @@ export function SwipeableAdventureCard({
             step={1}
             className="mb-2"
           />
-          <div className="text-center text-xs text-black/60">
+          <div className="text-center text-xs text-green-600">
             Slide and release to decide
           </div>
         </div>

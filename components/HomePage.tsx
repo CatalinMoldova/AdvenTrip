@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { ArrowRight, MapPin, Users, Calendar, Sparkles } from 'lucide-react';
+import { AdvenTripLogo } from './ui/AdvenTripLogo';
 
 interface HomePageProps {
   onGetStarted: () => void;
@@ -42,7 +43,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
   }, [currentImageIndex]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
       {/* Hero Section with Background Images */}
       <div className="relative h-screen overflow-hidden">
         {/* Background Image Carousel */}
@@ -94,7 +95,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
           <div className="text-center space-y-12 max-w-5xl mx-auto">
             {/* Main Hero Content */}
             <div className="space-y-8">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white drop-shadow-2xl leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-display tracking-tight text-white drop-shadow-2xl leading-tight">
                 Get your travel plans out of the group chat
               </h1>
               <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto drop-shadow-xl leading-relaxed">
@@ -122,17 +123,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
       </div>
 
       {/* About Section */}
-      <div className="bg-background">
+      <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
         <div className="container mx-auto px-6 py-24">
           <div className="max-w-4xl mx-auto text-center space-y-12">
             <div className="space-y-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
+              <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground leading-tight">
                 Stop the group chat chaos
               </h2>
               <div className="space-y-6">
                 <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                   We get it. You're tired of scrolling through 200+ messages just to find out 
-                  where you're actually going. NOMADIQ cuts through the noise and turns your 
+                  where you're actually going. AdvenTrip cuts through the noise and turns your 
                   travel dreams into reality—no more "where should we eat?" debates or 
                   "who's booking what?" confusion.
                 </p>
@@ -161,12 +162,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
       </div>
 
       {/* Features Section */}
-      <div className="bg-gray-50">
+      <div className="bg-gradient-to-br from-green-100 via-emerald-100 to-teal-100">
         <div className="container mx-auto px-6 py-20">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Why choose NOMADIQ?
+              <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground mb-4">
+                Why choose AdvenTrip?
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 We've solved the problems that make group travel planning a nightmare
@@ -218,14 +219,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
       </div>
 
       {/* Bottom CTA */}
-      <div className="bg-background">
+      <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
         <div className="container mx-auto px-6 py-20">
           <div className="max-w-3xl mx-auto text-center space-y-8">
             <div className="space-y-6">
               <div className="w-16 h-16 mx-auto bg-primary/10 rounded-2xl flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+              <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground">
                 Ready to stop the travel chaos?
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">

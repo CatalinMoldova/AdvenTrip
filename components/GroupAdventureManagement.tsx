@@ -62,16 +62,16 @@ export function GroupAdventureManagement({
     // Minimum budget
     const budgets = members.map(m => m.budget).filter(Boolean);
     const minBudget = budgets.length > 0 ? Math.min(...budgets) : undefined;
-    const minBudgetMember = members.find(m => m.budget === minBudget);
-    const budgetCurrency = minBudgetMember?.currency || '$';
     
     // Transportation preferences
-    const transportations = members.map(m => m.transportation).filter(Boolean);
+    const transportOptions = ['car', 'plane', 'train', 'bus', 'bike'];
+    const transportations = members.map(m => 
+      m.preferences?.find(p => transportOptions.includes(p.toLowerCase()))
+    ).filter(Boolean);
     
     return {
       commonInterests,
       minBudget,
-      budgetCurrency,
       transportations: [...new Set(transportations)]
     };
   };
@@ -102,7 +102,7 @@ export function GroupAdventureManagement({
     if (adventureRequest.inviteLink) {
       if (navigator.share) {
         navigator.share({
-          title: 'Join my NOMADIQ adventure!',
+          title: 'Join my AdvenTrip adventure!',
           text: 'Let\'s plan an adventure together',
           url: adventureRequest.inviteLink,
         });
@@ -352,7 +352,7 @@ export function GroupAdventureManagement({
                     <div>
                       <p className="text-sm text-gray-500">Group Budget</p>
                       <p className="font-semibold">
-                        {summary.minBudget ? `${summary.budgetCurrency}${summary.minBudget.toLocaleString()}` : 'Undefined'}
+                        {summary.minBudget ? `$${summary.minBudget.toLocaleString()}` : 'Not specified'}
                       </p>
                     </div>
 
@@ -394,7 +394,10 @@ export function GroupAdventureManagement({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Card className="hover:shadow-lg transition-shadow">
+                      <Card 
+                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => setSelectedMember(member)}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="w-12 h-12">
@@ -408,7 +411,7 @@ export function GroupAdventureManagement({
                                 {member.name}
                               </h3>
                               <p className="text-sm text-gray-500">
-                                Budget: {member.budget ? `${member.currency || '$'}${member.budget.toLocaleString()}` : 'Undefined'}
+                                Budget: ${member.budget?.toLocaleString() || 'Not set'}
                               </p>
                               <div className="flex flex-wrap gap-1 mt-2">
                                 {member.preferences?.slice(0, 2).map((pref) => (
@@ -423,17 +426,6 @@ export function GroupAdventureManagement({
                                 )}
                               </div>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingMember(member);
-                              }}
-                              className="ml-2"
-                            >
-                              Edit
-                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -476,16 +468,6 @@ export function GroupAdventureManagement({
           </Card>
         </motion.div>
       </div>
-
-      {/* Member Profile Edit Dialog */}
-      {editingMember && (
-        <MemberProfileEdit
-          member={editingMember}
-          isOpen={!!editingMember}
-          onClose={() => setEditingMember(null)}
-          onSave={handleMemberUpdate}
-        />
-      )}
     </div>
   );
 }

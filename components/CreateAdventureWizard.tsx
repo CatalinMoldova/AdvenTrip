@@ -203,7 +203,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
   const shareInviteLink = () => {
     if (navigator.share) {
       navigator.share({
-        title: 'Join my NOMADIQ adventure!',
+        title: 'Join my AdvenTrip adventure!',
         text: 'Let\'s plan an adventure together',
         url: inviteLink,
       });
@@ -218,14 +218,14 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">What's your adventure called?</h2>
-              <p className="text-sm text-black/60">Give your adventure a memorable name</p>
+              <h2 className="text-2xl text-green-800 mb-2">What's your adventure called?</h2>
+              <p className="text-sm text-green-600">Give your adventure a memorable name</p>
             </div>
             <Input
               value={adventureName}
               onChange={(e) => setAdventureName(e.target.value)}
               placeholder="e.g., Summer Road Trip, Beach Getaway"
-              className="text-center text-lg border-0 bg-black/5 rounded-xl px-6 py-4 text-black"
+              className="text-center text-lg border-0 bg-green-100 rounded-xl px-6 py-4 text-green-800"
               autoFocus
             />
           </div>
@@ -235,14 +235,14 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">What's your name?</h2>
-              <p className="text-sm text-black/60">Let's personalize your adventure</p>
+              <h2 className="text-2xl text-green-800 mb-2">What's your name?</h2>
+              <p className="text-sm text-green-600">Let's personalize your adventure</p>
             </div>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
-              className="text-center text-lg border-0 bg-black/5 rounded-xl px-6 py-4 text-black"
+              className="text-center text-lg border-0 bg-green-100 rounded-xl px-6 py-4 text-green-800"
               autoFocus
             />
           </div>
@@ -252,8 +252,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">Where are you?</h2>
-              <p className="text-sm text-black/60">Your starting point</p>
+              <h2 className="text-2xl text-green-800 mb-2">Where are you?</h2>
+              <p className="text-sm text-green-600">Your starting point</p>
             </div>
             <LocationAutocomplete
               value={location}
@@ -261,7 +261,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
               onSelect={handleLocationSelect}
               onValidationChange={handleLocationValidationChange}
               placeholder="Start typing a city or location..."
-              className="text-center text-lg border-0 bg-black/5 rounded-xl px-6 py-4 text-black"
+              className="text-center text-lg border-0 bg-green-100 rounded-xl px-6 py-4 text-green-800"
               autoFocus
             />
             {location && !isLocationValid && (
@@ -278,8 +278,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">What activities do you want to do?</h2>
-              <p className="text-sm text-black/60">Select all that apply</p>
+              <h2 className="text-2xl text-green-800 mb-2">What activities do you want to do?</h2>
+              <p className="text-sm text-green-600">Select all that apply</p>
             </div>
             <div className="flex flex-wrap gap-2 justify-center max-h-[400px] overflow-y-auto">
               {activityOptions.map((activity) => {
@@ -290,8 +290,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                     onClick={() => toggleActivity(activity)}
                     className={`px-4 py-2 rounded-full text-sm transition-all border ${
                       isSelected
-                        ? 'bg-black text-white border-black scale-105'
-                        : 'bg-white text-black border-black/20'
+                        ? 'bg-green-500 text-white border-green-500 scale-105'
+                        : 'bg-green-100 text-green-800 border-green-200'
                     }`}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -308,8 +308,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">What time of year?</h2>
-              <p className="text-sm text-black/60">Choose your preferred season</p>
+              <h2 className="text-2xl text-green-800 mb-2">What time of year?</h2>
+              <p className="text-sm text-green-600">Choose your preferred season</p>
             </div>
             <div className="space-y-3">
               {seasonOptions.map((s) => {
@@ -320,8 +320,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                     onClick={() => setSeason(s.id)}
                     className={`w-full p-4 rounded-2xl text-left transition-all border ${
                       isSelected
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-black/10'
+                        ? 'bg-green-500 text-white border-green-500'
+                        : 'bg-green-100 text-green-800 border-green-200'
                     }`}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -329,10 +329,10 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{s.icon}</span>
                         <div>
-                          <div className={isSelected ? 'text-white' : 'text-black'}>
+                          <div className={isSelected ? 'text-white' : 'text-green-800'}>
                             {s.label}
                           </div>
-                          <div className={`text-xs ${isSelected ? 'text-white/70' : 'text-black/60'}`}>
+                          <div className={`text-xs ${isSelected ? 'text-white/70' : 'text-green-600'}`}>
                             {s.months}
                           </div>
                         </div>
@@ -350,21 +350,37 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">How long will it last?</h2>
-              <p className="text-sm text-black/60">Number of days</p>
+              <h2 className="text-2xl text-green-800 mb-2">How long will it last?</h2>
+              <p className="text-sm text-green-600">Number of days</p>
             </div>
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setDuration(String(Math.max(1, parseInt(duration || '1') - 1)))}
+                className="w-12 h-12 rounded-full border-green-200 text-green-600"
+              >
+                -
+              </Button>
               <Input
                 type="number"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
                 placeholder="0"
-                className="text-center text-3xl border-0 bg-black/5 rounded-xl w-32 h-20 text-black"
+                className="text-center text-3xl border-0 bg-green-100 rounded-xl w-32 h-20 text-green-800"
                 min="1"
                 autoFocus
               />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setDuration(String(parseInt(duration || '0') + 1))}
+                className="w-12 h-12 rounded-full border-green-200 text-green-600"
+              >
+                +
+              </Button>
             </div>
-            <p className="text-center text-black/60 text-sm">
+            <p className="text-center text-green-600 text-sm">
               {duration ? `${duration} ${parseInt(duration) === 1 ? 'day' : 'days'}` : 'Enter duration'}
             </p>
           </div>
@@ -374,8 +390,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">What means of transportation?</h2>
-              <p className="text-sm text-black/60">Choose how you want to travel</p>
+              <h2 className="text-2xl text-green-800 mb-2">What means of transportation?</h2>
+              <p className="text-sm text-green-600">Choose how you want to travel</p>
             </div>
             <div className="space-y-2">
               {transportOptions.map((t) => {
@@ -386,8 +402,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                     onClick={() => setTransport(t.id)}
                     className={`w-full p-4 rounded-2xl text-left transition-all border ${
                       isSelected
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-black/10'
+                        ? 'bg-green-500 text-white border-green-500'
+                        : 'bg-green-100 text-green-800 border-green-200'
                     }`}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -409,8 +425,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-black mb-2">Choose your adventure type</h2>
-              <p className="text-sm text-black/60">Solo or with friends?</p>
+              <h2 className="text-2xl text-green-800 mb-2">Choose your adventure type</h2>
+              <p className="text-sm text-green-600">Solo or with friends?</p>
             </div>
             
             {!mode ? (
@@ -425,8 +441,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                       🌍
                     </div>
                     <div className="flex-1">
-                      <div className="text-black mb-1">Solo Adventure</div>
-                      <div className="text-xs text-black/60">
+                      <div className="text-green-800 mb-1">Solo Adventure</div>
+                      <div className="text-xs text-green-600">
                         Plan your personal journey
                       </div>
                     </div>
@@ -443,8 +459,8 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                       👥
                     </div>
                     <div className="flex-1">
-                      <div className="text-black mb-1">Group Adventure</div>
-                      <div className="text-xs text-black/60">
+                      <div className="text-green-800 mb-1">Group Adventure</div>
+                      <div className="text-xs text-green-600">
                         Invite friends to plan together
                       </div>
                     </div>
@@ -463,9 +479,9 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                   <p className="text-sm opacity-90">Share this link with your friends</p>
                 </div>
 
-                <div className="bg-black/5 rounded-2xl p-4">
-                  <p className="text-xs text-black/60 mb-2">INVITE LINK</p>
-                  <div className="bg-white rounded-xl p-3 break-all text-sm text-black border border-black/10">
+                <div className="bg-green-100 rounded-2xl p-4">
+                  <p className="text-xs text-green-600 mb-2">INVITE LINK</p>
+                  <div className="bg-white rounded-xl p-3 break-all text-sm text-green-800 border border-green-200">
                     {inviteLink}
                   </div>
                 </div>
@@ -481,7 +497,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                   <Button
                     onClick={copyInviteLink}
                     variant="outline"
-                    className="w-full rounded-xl h-12 border-black/20 text-black"
+                    className="w-full rounded-xl h-12 border-green-200 text-green-600"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy Link
@@ -491,7 +507,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                 <Button
                   onClick={handleClose}
                   variant="ghost"
-                  className="w-full text-black"
+                  className="w-full text-green-600"
                 >
                   Done
                 </Button>
@@ -515,13 +531,13 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                 variant="ghost"
                 size="icon"
                 onClick={handleBack}
-                className="rounded-full text-black"
+                className="rounded-full text-green-600"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
             )}
             <div className="flex-1 text-center">
-              <div className="text-xs text-black/60">
+              <div className="text-xs text-green-600">
                 {step < 6 ? `Step ${step + 1} of ${totalSteps}` : 'Final Step'}
               </div>
             </div>
