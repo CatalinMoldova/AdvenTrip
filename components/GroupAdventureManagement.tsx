@@ -19,7 +19,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdventureRequest, GroupMember } from '../types';
 import { toast } from 'sonner';
-import { MemberProfileEdit } from './MemberProfileEdit';
+// import { MemberProfileEdit } from './MemberProfileEdit';
 
 interface GroupAdventureManagementProps {
   adventureRequest: AdventureRequest;
@@ -38,6 +38,7 @@ export function GroupAdventureManagement({
   onBackToApp,
   onUpdateAdventure 
 }: GroupAdventureManagementProps) {
+  console.log('GroupAdventureManagement rendered with:', { adventureRequest, currentUser });
   const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null);
   const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
   const [localAdventureRequest, setLocalAdventureRequest] = useState<AdventureRequest>(adventureRequest);
@@ -481,6 +482,7 @@ export function GroupAdventureManagement({
       </div>
 
       {/* Member Profile Edit Dialog */}
+      {/* Temporarily commented out to debug white screen issue
       {editingMember && (
         <MemberProfileEdit
           member={editingMember}
@@ -489,6 +491,7 @@ export function GroupAdventureManagement({
           onSave={handleMemberUpdate}
         />
       )}
+      */}
     </div>
   );
 }
