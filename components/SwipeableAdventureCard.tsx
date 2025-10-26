@@ -27,7 +27,7 @@ interface SwipeableAdventureCardProps {
 }
 
 const SWIPE_THRESHOLD = 100;
-const ROTATION_RANGE = 30;
+const ROTATION_RANGE = 10;
 
 export function SwipeableAdventureCard({
   adventure,
@@ -49,8 +49,9 @@ export function SwipeableAdventureCard({
   const [transportMode, setTransportMode] = useState('flight');
 
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-ROTATION_RANGE, ROTATION_RANGE]);
-  const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
+  // Make rotation proportional to x position for sync
+  const rotate = useTransform(x, (v) => (v / 150) * ROTATION_RANGE);
+  // Keep card fully visible at all times - no opacity fade
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -69,20 +70,32 @@ export function SwipeableAdventureCard({
     
     if (Math.abs(offset) > SWIPE_THRESHOLD) {
       if (offset > 0) {
-        onSwipeRight(adventure, rating);
+        setTimeout(() => onSwipeRight(adventure, rating), 600);
       } else {
-        onSwipeLeft(adventure);
+        setTimeout(() => onSwipeLeft(adventure), 600);
       }
     }
   };
 
   const handleSliderChange = (value: number[]) => {
-    setRating(value[0]);
+    const newRating = value[0];
+    
+    // Neutral zone logic: if between 45-55%, snap to 50% and reset card position
+    if (newRating >= 45 && newRating <= 55) {
+      setRating(50);
+      x.set(0); // Reset card position to center
+    } else {
+      setRating(newRating);
+    }
   };
 
   const handleSliderCommit = () => {
-    const isLike = rating > 50;
-    onSliderDecision(adventure, rating, isLike);
+    // Only trigger decision if outside neutral zone (45-55%)
+    if (rating < 45 || rating > 55) {
+      const isLike = rating > 50;
+      setTimeout(() => onSliderDecision(adventure, rating, isLike), 600);
+    }
+    // If in neutral zone (45-55%), do nothing - card stays
   };
 
   const toggleActivity = (activity: string) => {
@@ -113,14 +126,25 @@ export function SwipeableAdventureCard({
       style={{
         x,
         rotate,
-        opacity,
       }}
       drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
+      dragConstraints={{ left: -150, right: 150 }}
       onDragEnd={handleDragEnd}
       whileTap={{ cursor: 'grabbing' }}
     >
       <div className="relative w-full h-full" style={{ perspective: '1000px' }}>
+        {/* Gradient overlays for tilt direction */}
+        <div className="absolute inset-0 pointer-events-none z-20">
+          <motion.div 
+            className="absolute left-0 top-0 bottom-0 w-1/3 bg-gradient-to-r from-red-500/60 to-transparent rounded-l-3xl"
+            style={{ opacity: useTransform(x, [-150, -10, 0], [1, 0.5, 0]) }}
+          />
+          <motion.div 
+            className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-green-500/60 to-transparent rounded-r-3xl"
+            style={{ opacity: useTransform(x, [0, 10, 150], [0, 0.5, 1]) }}
+          />
+        </div>
+
         <motion.div
           className="relative w-full h-full"
           animate={{ rotateY: isFlipped ? 180 : 0 }}
@@ -477,18 +501,14 @@ export function SwipeableAdventureCard({
 
       {/* Swipe indicators */}
       <motion.div
-        className="absolute -left-4 top-1/2 -translate-y-1/2 bg-red-500 text-white px-4 py-2 rounded-full text-sm rotate-12"
-        style={{
-          opacity: useTransform(x, [-150, 0], [1, 0]),
-        }}
+        className="absolute -left-6 top-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-3 rounded-full text-xl font-bold rotate-12"
+        style={{ opacity: useTransform(x, [-150, 0], [1, 0]) }}
       >
         NOPE
       </motion.div>
       <motion.div
-        className="absolute -right-4 top-1/2 -translate-y-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm -rotate-12"
-        style={{
-          opacity: useTransform(x, [0, 150], [0, 1]),
-        }}
+        className="absolute -right-6 top-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-3 rounded-full text-xl font-bold -rotate-12"
+        style={{ opacity: useTransform(x, [0, 150], [0, 1]) }}
       >
         LIKE
       </motion.div>
