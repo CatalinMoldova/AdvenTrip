@@ -89,7 +89,8 @@ export function SwipeableAdventureCard({
     
     // Card was swiped past threshold
     if (offset > 0) {
-      setTimeout(() => onSwipeRight(adventure, rating), 600);
+      const clampedRating = Math.max(0, Math.min(100, rating));
+      setTimeout(() => onSwipeRight(adventure, clampedRating), 600);
     } else {
       setTimeout(() => onSwipeLeft(adventure), 600);
     }
@@ -111,7 +112,8 @@ export function SwipeableAdventureCard({
     // Only trigger decision if outside neutral zone (45-55%)
     if (rating < 45 || rating > 55) {
       const isLike = rating > 50;
-      setTimeout(() => onSliderDecision(adventure, rating, isLike), 600);
+      const clampedRating = Math.max(0, Math.min(100, rating));
+      setTimeout(() => onSliderDecision(adventure, clampedRating, isLike), 600);
     }
     // If in neutral zone (45-55%), do nothing - card stays
   };
