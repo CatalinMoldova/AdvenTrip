@@ -59,13 +59,13 @@ export function FeedTab({
 
   if (visibleAdventures.length === 0) {
     return (
-      <div className="h-screen bg-white flex items-center justify-center p-6">
+      <div className="h-screen bg-green-50/30 flex items-center justify-center p-6">
         <div className="text-center max-w-md">
-          <div className="w-20 h-20 mx-auto mb-4 bg-black/5 rounded-full flex items-center justify-center">
-            <Sparkles className="w-10 h-10 text-black/40" />
+          <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+            <Sparkles className="w-10 h-10 text-green-400" />
           </div>
-          <h3 className="text-xl text-black mb-2">All caught up!</h3>
-          <p className="text-black/60">
+          <h3 className="text-xl text-green-800 mb-2">All caught up!</h3>
+          <p className="text-green-600">
             You've seen all available adventures. Check your saved trips or create a new adventure plan!
           </p>
         </div>
@@ -74,7 +74,7 @@ export function FeedTab({
   }
 
   return (
-    <div className="h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="h-screen bg-green-50/30 flex items-center justify-center p-6 relative overflow-hidden">
       {/* Card Stack - only show current card */}
       <div className="relative w-full max-w-lg" style={{ height: '75vh' }}>
         <AnimatePresence>

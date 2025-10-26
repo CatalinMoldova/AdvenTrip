@@ -3,12 +3,10 @@ import { User, Adventure } from '../types';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { MapPin, User as UserIcon, Bookmark, Trash2, Camera } from 'lucide-react';
+import { MapPin, User as UserIcon, Bookmark, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { ProfilePicturePicker } from './ProfilePicturePicker';
 
 interface ProfileTabProps {
   user: User | null;
@@ -30,16 +28,6 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
   const [selectedTransport, setSelectedTransport] = useState<string[]>([]);
-  const [showPicturePicker, setShowPicturePicker] = useState(false);
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   useEffect(() => {
     if (user) {
@@ -82,82 +70,58 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
       name: name.trim(),
       location: location.trim(),
       interests: selectedTransport,
-      avatar: user?.avatar,
     };
 
     onUpdateUser(updatedUser);
     toast.success('Profile updated successfully! ✅');
   };
 
-  const handlePictureSelect = (avatarUrl: string) => {
-    if (user) {
-      const updatedUser: User = {
-        ...user,
-        avatar: avatarUrl,
-      };
-      onUpdateUser(updatedUser);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-black/10 px-6 py-4">
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-lg border-b border-gray-200 px-6 py-4">
         <h1 className="text-black">Profile</h1>
       </div>
 
       <div className="max-w-lg mx-auto px-6 py-6">
         {/* Profile Avatar */}
         <div className="flex flex-col items-center mb-8">
-          <motion.button
-            onClick={() => setShowPicturePicker(true)}
-            className="relative group"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Avatar className="w-24 h-24 border-4 border-black/10">
-              <AvatarImage src={user?.avatar} />
-              <AvatarFallback className="bg-black text-white text-2xl">
-                {user?.name ? getInitials(user.name) : <UserIcon className="w-12 h-12" />}
-              </AvatarFallback>
-            </Avatar>
-            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Camera className="w-6 h-6 text-white" />
-            </div>
-          </motion.button>
-          <p className="text-xs text-black/60 mt-3">Tap to change picture</p>
+          <div className="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mb-3">
+            <UserIcon className="w-12 h-12 text-white" />
+          </div>
+          <p className="text-xs text-gray-600">AdvenTrip Traveler</p>
         </div>
 
         {/* Form */}
         <div className="space-y-6 mb-8">
           {/* Name Section */}
-          <div className="bg-white rounded-2xl p-4 border border-black/10">
-            <Label className="text-xs text-black/60 mb-2 block">NAME</Label>
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+            <Label className="text-xs text-gray-600 mb-2 block">NAME</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
-              className="border-0 bg-black/5 rounded-xl px-4 py-3 text-black"
+              className="border-0 bg-white rounded-xl px-4 py-3 text-black"
             />
           </div>
 
           {/* Location Section */}
-          <div className="bg-white rounded-2xl p-4 border border-black/10">
-            <Label className="text-xs text-black/60 mb-2 block">LOCATION</Label>
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+            <Label className="text-xs text-gray-600 mb-2 block">LOCATION</Label>
             <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Where do you live?"
-                className="border-0 bg-black/5 rounded-xl pl-11 pr-4 py-3 text-black"
+                className="border-0 bg-white rounded-xl pl-11 pr-4 py-3 text-black"
               />
             </div>
           </div>
 
           {/* Transportation Preferences */}
-          <div className="bg-white rounded-2xl p-4 border border-black/10">
-            <Label className="text-xs text-black/60 mb-3 block">PREFERRED TRANSPORTATION</Label>
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+            <Label className="text-xs text-gray-600 mb-3 block">PREFERRED TRANSPORTATION</Label>
             <div className="flex flex-wrap gap-2">
               {transportOptions.map((transport) => {
                 const isSelected = selectedTransport.includes(transport.id);
@@ -167,8 +131,8 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
                     onClick={() => toggleTransport(transport.id)}
                     className={`px-4 py-2 rounded-full text-sm transition-colors border ${
                       isSelected
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-black/20'
+                        ? 'bg-green-600 text-white border-green-600'
+                        : 'bg-white text-black border-gray-200'
                     }`}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -183,7 +147,7 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
           {/* Save Button */}
           <Button
             onClick={handleSave}
-            className="w-full bg-black hover:bg-black/80 text-white rounded-xl h-14"
+            className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl h-14"
           >
             Save Profile
           </Button>
@@ -192,15 +156,15 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
         {/* Saved Trips Section */}
         <div className="mt-12">
           <div className="flex items-center gap-2 mb-4">
-            <Bookmark className="w-5 h-5 text-black" />
+            <Bookmark className="w-5 h-5 text-gray-600" />
             <h2 className="text-black">Saved Trips</h2>
-            <span className="text-sm text-black/60">({savedTrips.length})</span>
+            <span className="text-sm text-gray-600">({savedTrips.length})</span>
           </div>
 
           {savedTrips.length === 0 ? (
-            <div className="text-center py-12 border border-black/10 rounded-2xl">
-              <Bookmark className="w-12 h-12 mx-auto mb-3 text-black/20" />
-              <p className="text-black/60 text-sm">
+            <div className="text-center py-12 border border-gray-200 rounded-2xl bg-gray-50">
+              <Bookmark className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-gray-600 text-sm">
                 No saved trips yet. Browse the feed to save your favorites!
               </p>
             </div>
@@ -211,7 +175,7 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
                   key={item.adventure.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white border border-black/10 rounded-2xl overflow-hidden"
+                  className="bg-white border border-gray-200 rounded-2xl overflow-hidden"
                 >
                   <div className="flex gap-4">
                     <div className="w-24 h-24 flex-shrink-0">
@@ -223,11 +187,11 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
                     </div>
                     <div className="flex-1 py-3 pr-3">
                       <h3 className="text-black mb-1">{item.adventure.title}</h3>
-                      <p className="text-xs text-black/60 mb-2">
+                      <p className="text-xs text-gray-600 mb-2">
                         {item.adventure.destination} • {item.adventure.duration}
                       </p>
                       <div className="flex items-center gap-2">
-                        <div className="text-xs text-black/60">
+                        <div className="text-xs text-gray-600">
                           Rating: {item.rating}%
                         </div>
                       </div>
@@ -235,9 +199,9 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
                     <div className="flex items-start p-3">
                       <button
                         onClick={() => onRemoveSavedTrip?.(item.adventure.id)}
-                        className="p-2 hover:bg-black/5 rounded-lg transition-colors"
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                       >
-                        <Trash2 className="w-4 h-4 text-black/40" />
+                        <Trash2 className="w-4 h-4 text-gray-400" />
                       </button>
                     </div>
                   </div>
@@ -247,15 +211,6 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
           )}
         </div>
       </div>
-
-      {/* Profile Picture Picker */}
-      <ProfilePicturePicker
-        currentAvatar={user?.avatar}
-        userName={user?.name || 'User'}
-        isOpen={showPicturePicker}
-        onClose={() => setShowPicturePicker(false)}
-        onSelectPicture={handlePictureSelect}
-      />
     </div>
   );
 }

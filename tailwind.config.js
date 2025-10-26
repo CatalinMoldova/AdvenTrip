@@ -94,6 +94,14 @@ export default {
           'Arial',
           'sans-serif',
         ],
+        display: [
+          'Space Grotesk',
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'system-ui',
+          'sans-serif',
+        ],
       },
       backdropBlur: {
         'ios': '20px',

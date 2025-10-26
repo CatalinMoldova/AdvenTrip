@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { AdvenTripLogo } from './ui/AdvenTripLogo';
 import {
   Bookmark,
   Users,
@@ -87,12 +88,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Header */}
         <div className="p-6 border-b border-[var(--border)] bg-white/50">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-[var(--ios-blue)] rounded-[14px] flex items-center justify-center ios-shadow">
-              <Sparkles className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-green-500 rounded-[14px] flex items-center justify-center ios-shadow">
+              <AdvenTripLogo size="lg" className="text-white" />
             </div>
             <div>
-              <h2 className="text-[var(--foreground)]">
-                NOMADIQ
+              <h2 className="text-[var(--foreground)] font-black font-display tracking-tight text-green-800">
+                AdvenTrip
               </h2>
               <p className="text-xs text-[var(--ios-gray)]">Your collection</p>
             </div>
