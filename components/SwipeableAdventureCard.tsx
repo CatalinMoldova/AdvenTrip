@@ -540,14 +540,20 @@ export function SwipeableAdventureCard({
 
       {/* Swipe indicators */}
       <motion.div
-        className="absolute -left-6 top-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-3 rounded-full text-xl font-bold rotate-12"
-        style={{ opacity: useTransform(x, [-150, 0], [1, 0]) }}
+        className="absolute -left-6 top-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-3 rounded-full text-xl font-bold"
+        style={{ 
+          opacity: useTransform(x, [-150, 0], [1, 0]),
+          rotate: useTransform(x, [-150, 0], [12, -12])
+        }}
       >
         NOPE
       </motion.div>
       <motion.div
-        className="absolute -right-6 top-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-3 rounded-full text-xl font-bold -rotate-12"
-        style={{ opacity: useTransform(x, [0, 150], [0, 1]) }}
+        className="absolute -right-6 top-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-3 rounded-full text-xl font-bold"
+        style={{ 
+          opacity: useTransform(x, [0, 150], [0, 1]),
+          rotate: useTransform(x, [0, 150], [-12, 12])
+        }}
       >
         LIKE
       </motion.div>
@@ -556,8 +562,12 @@ export function SwipeableAdventureCard({
       {!isFlipped && (
         <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg z-20">
           <div className="flex items-center justify-between mb-2 text-sm text-green-800/70">
-            <span>Not interested</span>
-            <span>Love it!</span>
+            <motion.span>
+              {rating < 50 ? `${rating}%` : 'Not interested'}
+            </motion.span>
+            <motion.span>
+              {rating > 50 ? `${rating}%` : 'Love it!'}
+            </motion.span>
           </div>
           <Slider
             value={[rating]}
