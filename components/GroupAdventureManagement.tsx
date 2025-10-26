@@ -16,7 +16,7 @@ import {
   Star,
   Globe
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+// import { motion, AnimatePresence } from 'framer-motion';
 import { AdventureRequest, GroupMember } from '../types';
 import { toast } from 'sonner';
 import { MemberProfileEditSimple } from './MemberProfileEditSimple';
@@ -238,14 +238,24 @@ export function GroupAdventureManagement({
     );
   }
 
+  // Simple fallback if there are any issues
+  if (!adventureRequest) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Loading...</h1>
+          <Button onClick={onBack} variant="outline">
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 p-6">
       <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
+        <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -478,7 +488,7 @@ export function GroupAdventureManagement({
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
 
       {/* Member Profile Edit Dialog */}
