@@ -157,6 +157,18 @@ export function SwipeableAdventureCard({
       whileTap={{ cursor: 'grabbing' }}
     >
       <div className="relative w-full h-full" style={{ perspective: '1000px' }}>
+        {/* Gradient overlays for tilt direction */}
+        <div className="absolute inset-0 pointer-events-none z-20">
+          <motion.div 
+            className="absolute left-0 top-0 bottom-0 w-1/3 bg-gradient-to-r from-red-500/60 to-transparent rounded-l-3xl"
+            style={{ opacity: useTransform(x, [-150, -10, 0], [1, 0.5, 0]) }}
+          />
+          <motion.div 
+            className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-green-500/60 to-transparent rounded-r-3xl"
+            style={{ opacity: useTransform(x, [0, 10, 150], [0, 0.5, 1]) }}
+          />
+        </div>
+
         <motion.div
           className="relative w-full h-full"
           animate={{ rotateY: isFlipped ? 180 : 0 }}
