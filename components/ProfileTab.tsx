@@ -3,10 +3,12 @@ import { User, Adventure } from '../types';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
-import { MapPin, User as UserIcon, Bookmark, Trash2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { MapPin, User as UserIcon, Bookmark, Trash2, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ProfilePicturePicker } from './ProfilePicturePicker';
 
 interface ProfileTabProps {
   user: User | null;
@@ -28,6 +30,16 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
   const [selectedTransport, setSelectedTransport] = useState<string[]>([]);
+  const [showPicturePicker, setShowPicturePicker] = useState(false);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   useEffect(() => {
     if (user) {
@@ -70,10 +82,21 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
       name: name.trim(),
       location: location.trim(),
       interests: selectedTransport,
+      avatar: user?.avatar,
     };
 
     onUpdateUser(updatedUser);
     toast.success('Profile updated successfully! ✅');
+  };
+
+  const handlePictureSelect = (avatarUrl: string) => {
+    if (user) {
+      const updatedUser: User = {
+        ...user,
+        avatar: avatarUrl,
+      };
+      onUpdateUser(updatedUser);
+    }
   };
 
   return (
@@ -86,10 +109,23 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
       <div className="max-w-lg mx-auto px-6 py-6">
         {/* Profile Avatar */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-24 h-24 bg-black rounded-full flex items-center justify-center mb-3">
-            <UserIcon className="w-12 h-12 text-white" />
-          </div>
-          <p className="text-xs text-black/60">NOMADIQ Traveler</p>
+          <motion.button
+            onClick={() => setShowPicturePicker(true)}
+            className="relative group"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Avatar className="w-24 h-24 border-4 border-black/10">
+              <AvatarImage src={user?.avatar} />
+              <AvatarFallback className="bg-black text-white text-2xl">
+                {user?.name ? getInitials(user.name) : <UserIcon className="w-12 h-12" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Camera className="w-6 h-6 text-white" />
+            </div>
+          </motion.button>
+          <p className="text-xs text-black/60 mt-3">Tap to change picture</p>
         </div>
 
         {/* Form */}
@@ -211,6 +247,15 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
           )}
         </div>
       </div>
+
+      {/* Profile Picture Picker */}
+      <ProfilePicturePicker
+        currentAvatar={user?.avatar}
+        userName={user?.name || 'User'}
+        isOpen={showPicturePicker}
+        onClose={() => setShowPicturePicker(false)}
+        onSelectPicture={handlePictureSelect}
+      />
     </div>
   );
 }

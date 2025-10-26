@@ -81,6 +81,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           name: 'Traveler',
           location: location,
           interests: selectedActivities,
+          avatar: undefined,
         };
         onComplete(user);
       }, 1500);

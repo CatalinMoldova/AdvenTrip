@@ -3,6 +3,7 @@ export interface User {
   name: string;
   location: string;
   interests: string[];
+  avatar?: string;
 }
 
 export interface Friend {
