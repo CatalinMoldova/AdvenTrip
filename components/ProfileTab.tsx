@@ -89,7 +89,7 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
     toast.success('Profile updated successfully! ✅');
   };
 
-  const handlePictureSelect = (avatarUrl: string) => {
+  const handlePictureSelect = (avatarUrl: string | undefined) => {
     if (user) {
       const updatedUser: User = {
         ...user,

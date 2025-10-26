@@ -166,7 +166,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           id: user?.id || '1',
           name: name.trim(),
           email: user?.email || '',
-          avatar: user?.avatar || '',
+          avatar: user?.avatar,
           budget: user?.budget || 1000,
           preferences: activities.map(a => a.replace(/[^\w\s]/g, '').trim())
         }],

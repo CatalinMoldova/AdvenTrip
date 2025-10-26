@@ -11,7 +11,7 @@ interface ProfilePicturePickerProps {
   userName: string;
   isOpen: boolean;
   onClose: () => void;
-  onSelectPicture: (avatarUrl: string) => void;
+  onSelectPicture: (avatarUrl: string | undefined) => void;
 }
 
 const defaultAvatars = [
@@ -79,7 +79,7 @@ export function ProfilePicturePicker({
 
   const handleRemovePicture = () => {
     setSelectedAvatar('');
-    onSelectPicture('');
+    onSelectPicture(undefined);
     onClose();
     toast.success('Profile picture removed');
   };
