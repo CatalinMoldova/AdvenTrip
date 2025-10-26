@@ -563,10 +563,10 @@ export function SwipeableAdventureCard({
         <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg z-20">
           <div className="flex items-center justify-between mb-2 text-sm text-green-800/70">
             <motion.span className={rating < 50 ? 'font-bold text-red-500' : ''}>
-              {rating < 50 ? `${rating}%` : 'Not interested'}
+              {rating < 50 ? `${Math.max(0, Math.min(49, rating))}%` : 'Not interested'}
             </motion.span>
             <motion.span className={rating > 50 ? 'font-bold text-green-600' : ''}>
-              {rating > 50 ? `${rating}%` : 'Love it!'}
+              {rating > 50 ? `${Math.max(51, Math.min(100, rating))}%` : 'Love it!'}
             </motion.span>
           </div>
           <Slider
