@@ -11,6 +11,7 @@ interface AdventuresTabProps {
   adventures: Adventure[];
   onCreateNew: () => void;
   onSaveToFolder?: (folderId: string, adventure: Adventure, rating: number) => void;
+  onGroupAdventureClick?: (adventureRequest: AdventureRequest) => void;
   user: User | null;
 }
 
@@ -29,15 +30,16 @@ export function AdventuresTab({
   adventures,
   onCreateNew,
   onSaveToFolder,
+  onGroupAdventureClick,
   user 
 }: AdventuresTabProps) {
   // Create folders from adventure requests
   const [folders, setFolders] = useState<AdventureFolder[]>(
     adventureRequests.map(req => ({
       id: req.id,
-      name: req.groupMembers && req.groupMembers.length > 0 
+      name: req.name || (req.groupMembers && req.groupMembers.length > 0 
         ? `Trip with ${req.groupMembers.map(m => m.name).join(', ')}`
-        : `${req.activities[0] || 'Adventure'} Trip`,
+        : `${req.activities[0] || 'Adventure'} Trip`),
       mode: req.mode,
       members: req.groupMembers,
       savedAdventures: [],
@@ -167,8 +169,16 @@ export function AdventuresTab({
                   <motion.button
                     key={folder.id}
                     onClick={() => {
-                      setSelectedFolder(folder.id);
-                      setCurrentFeedIndex(0);
+                      if (folder.mode === 'group' && onGroupAdventureClick) {
+                        // Find the adventure request for this folder
+                        const adventureRequest = adventureRequests.find(req => req.id === folder.id);
+                        if (adventureRequest) {
+                          onGroupAdventureClick(adventureRequest);
+                        }
+                      } else {
+                        setSelectedFolder(folder.id);
+                        setCurrentFeedIndex(0);
+                      }
                     }}
                     className="bg-white border border-black/10 rounded-2xl p-6 text-left hover:border-black/30 transition-all hover:shadow-lg"
                     whileHover={{ scale: 1.02 }}
