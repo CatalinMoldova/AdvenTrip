@@ -562,11 +562,11 @@ export function SwipeableAdventureCard({
       {!isFlipped && (
         <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg z-20">
           <div className="flex items-center justify-between mb-2 text-sm text-green-800/70">
-            <motion.span>
-              {rating < 50 ? <span className="font-bold">{rating}%</span> : 'Not interested'}
+            <motion.span className={rating < 50 ? 'font-bold text-red-500' : ''}>
+              {rating < 50 ? `${rating}%` : 'Not interested'}
             </motion.span>
-            <motion.span>
-              {rating > 50 ? <span className="font-bold">{rating}%</span> : 'Love it!'}
+            <motion.span className={rating > 50 ? 'font-bold text-green-600' : ''}>
+              {rating > 50 ? `${rating}%` : 'Love it!'}
             </motion.span>
           </div>
           <Slider
