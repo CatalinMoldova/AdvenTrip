@@ -105,11 +105,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                 />
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-display tracking-tight text-green-100 drop-shadow-2xl leading-tight" style={{textShadow: '3px 3px 8px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,1)'}}>
-                Get your travel plans out of the group chat
+                Get Trips Out of the Group Chat
               </h1>
               <p className="text-lg md:text-xl text-green-100 max-w-3xl mx-auto drop-shadow-xl leading-relaxed" style={{textShadow: '2px 2px 6px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,1)'}}>
-                Plan, organize, and discover amazing adventures with your friends.
-                No more endless group chats and scattered plans.
+                Discover, share, and plan your next adventure with a community of travelers.
+                Find inspiration, save trips, and connect with fellow explorers.
               </p>
             </div>
 
@@ -138,18 +138,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
           <div className="max-w-4xl mx-auto text-center space-y-12">
             <div className="space-y-8">
               <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground leading-tight">
-                Stop the group chat chaos
+                Your social travel companion
               </h2>
               <div className="space-y-6">
                 <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  We get it. You're tired of scrolling through 200+ messages just to find out 
-                  where you're actually going. AdvenTrip cuts through the noise and turns your 
-                  travel dreams into reality—no more "where should we eat?" debates or 
-                  "who's booking what?" confusion.
+                  Discover amazing trips from real travelers, save your favorites, and share your own
+                  adventures. Whether you're planning your next getaway or daydreaming about bucket list
+                  destinations, AdvenTrip makes it easy to find and plan the perfect trip.
                 </p>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                  Think of us as your personal travel coordinator that actually listens 
-                  and doesn't ghost you when it's time to plan.
+                  Swipe through personalized trip recommendations, create adventure boards with friends,
+                  and get inspired by a community of explorers just like you.
                 </p>
               </div>
             </div>
@@ -178,10 +177,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground mb-4">
-                Why choose AdvenTrip?
+                Everything you need to discover and plan trips
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                We've solved the problems that make group travel planning a nightmare
+                From inspiration to execution, all in one place
               </p>
             </div>
             
@@ -189,12 +188,25 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
               <Card className="text-center hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
                 <CardContent className="pt-8 pb-8 px-6">
                   <div className="w-14 h-14 mx-auto mb-6 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <Sparkles className="w-7 h-7 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-4 text-foreground">Find Trip Inspiration</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Swipe through personalized trip recommendations from real travelers.
+                    Save the ones you love, pass on the rest.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
+                <CardContent className="pt-8 pb-8 px-6">
+                  <div className="w-14 h-14 mx-auto mb-6 bg-primary/10 rounded-xl flex items-center justify-center">
                     <MapPin className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-4 text-foreground">Actually Smart Suggestions</h3>
+                  <h3 className="text-xl font-semibold mb-4 text-foreground">Share Your Adventures</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    No more "I don't know, what do you want to do?" We'll suggest places 
-                    that actually match your vibe and budget.
+                    Post your trips with photos, ratings, and recommendations.
+                    Help others discover amazing destinations.
                   </p>
                 </CardContent>
               </Card>
@@ -204,23 +216,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                   <div className="w-14 h-14 mx-auto mb-6 bg-primary/10 rounded-xl flex items-center justify-center">
                     <Users className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-4 text-foreground">No More Group Chat Hell</h3>
+                  <h3 className="text-xl font-semibold mb-4 text-foreground">Plan Your Next Trip</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Everyone sees the same plan, votes on options, and actually commits. 
-                    No more flaky friends ruining your trip.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="text-center hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
-                <CardContent className="pt-8 pb-8 px-6">
-                  <div className="w-14 h-14 mx-auto mb-6 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-7 h-7 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-4 text-foreground">Find Time That Actually Works</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Stop playing calendar Tetris. We'll find dates when everyone's free 
-                    and actually excited to travel.
+                    Create adventure boards, collaborate with friends, and organize
+                    your bucket list destinations.
                   </p>
                 </CardContent>
               </Card>
@@ -238,11 +237,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
               <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground">
-                Ready to stop the travel chaos?
+                Ready to find your next adventure?
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Join thousands of travelers who finally figured out how to plan trips 
-                without losing their minds (or their friends).
+                Join travelers from around the world discovering, sharing, and planning
+                amazing trips together.
               </p>
             </div>
             

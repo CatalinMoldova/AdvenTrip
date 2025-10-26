@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { User, AdventureRequest, Adventure } from './types';
+import { User, AdventureRequest, Adventure, TripPost } from './types';
 import { HomePage as LandingPageComponent } from './components/HomePage';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { FeedTab } from './components/FeedTab';
@@ -8,6 +8,8 @@ import { AdventuresTab } from './components/AdventuresTab';
 import { ProfileTab } from './components/ProfileTab';
 import { BottomTabNavigation } from './components/BottomTabNavigation';
 import { CreateAdventureWizard } from './components/CreateAdventureWizard';
+import { CreatePostScreen } from './components/CreatePostScreen';
+import { ChatScreen } from './components/ChatScreen';
 import { GroupJoinScreen } from './components/GroupJoinScreen';
 import { InviteOnboardingScreen } from './components/InviteOnboardingScreen';
 import { GroupAdventureManagement } from './components/GroupAdventureManagement';
@@ -34,6 +36,8 @@ const UserContext = React.createContext<{
   setGroupInviteId: React.Dispatch<React.SetStateAction<string | null>>;
   selectedGroupAdventure: AdventureRequest | null;
   setSelectedGroupAdventure: React.Dispatch<React.SetStateAction<AdventureRequest | null>>;
+  tripPosts: TripPost[];
+  setTripPosts: React.Dispatch<React.SetStateAction<TripPost[]>>;
 } | null>(null);
 
 export const useUser = () => {
@@ -49,6 +53,7 @@ function AppContent() {
   const [discardedTrips, setDiscardedTrips] = useState<Adventure[]>([]);
   const [groupInviteId, setGroupInviteId] = useState<string | null>(null);
   const [selectedGroupAdventure, setSelectedGroupAdventure] = useState<AdventureRequest | null>(null);
+  const [tripPosts, setTripPosts] = useState<TripPost[]>([]);
 
   const handleCreateAdventureRequest = (request: AdventureRequest) => {
     setAdventureRequests(prev => [...prev, request]);
@@ -85,7 +90,9 @@ function AppContent() {
       groupInviteId,
       setGroupInviteId,
       selectedGroupAdventure,
-      setSelectedGroupAdventure
+      setSelectedGroupAdventure,
+      tripPosts,
+      setTripPosts
     }}>
       <div className="min-h-screen bg-background">
         <Routes>
@@ -93,6 +100,8 @@ function AppContent() {
           <Route path="/get-started" element={<GetStartedPage />} />
           <Route path="/home" element={user ? <FeedPage /> : <Navigate to="/get-started" />} />
           <Route path="/adventures" element={user ? <AdventuresPage /> : <Navigate to="/get-started" />} />
+          <Route path="/create" element={user ? <CreatePostPage /> : <Navigate to="/get-started" />} />
+          <Route path="/chat" element={user ? <ChatPage /> : <Navigate to="/get-started" />} />
           <Route path="/profile" element={user ? <ProfilePage /> : <Navigate to="/get-started" />} />
           <Route path="/join/:inviteId" element={<GroupJoinPage />} />
           <Route path="/group-management" element={user && selectedGroupAdventure ? <GroupManagementPage /> : <Navigate to="/adventures" />} />
@@ -178,6 +187,8 @@ function FeedPage() {
         activeTab="feed"
         onTabChange={(tab) => {
           if (tab === 'adventures') navigate('/adventures');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'chat') navigate('/chat');
           if (tab === 'profile') navigate('/profile');
         }}
       />
@@ -240,7 +251,6 @@ function AdventuresPage() {
           adventures={mockAdventures}
           onCreateNew={() => setShowCreateWizard(true)}
           onSaveToFolder={(folderId: string, adventure: Adventure, rating: number) => handleSaveTrip(adventure, rating)}
-          onGroupAdventureClick={handleGroupAdventureClick}
           user={user!}
         />
       </div>
@@ -248,6 +258,8 @@ function AdventuresPage() {
         activeTab="adventures"
         onTabChange={(tab) => {
           if (tab === 'feed') navigate('/home');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'chat') navigate('/chat');
           if (tab === 'profile') navigate('/profile');
         }}
       />
@@ -290,6 +302,8 @@ function ProfilePage() {
         onTabChange={(tab) => {
           if (tab === 'feed') navigate('/home');
           if (tab === 'adventures') navigate('/adventures');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'chat') navigate('/chat');
         }}
       />
     </>
@@ -416,6 +430,100 @@ function GroupManagementPage() {
         toast.success('Link copied to clipboard!');
       }}
     />
+  );
+}
+
+// Create Post Page Component (/create)
+function CreatePostPage() {
+  const { user, tripPosts, setTripPosts } = useUser();
+  const navigate = useNavigate();
+
+  const handleCreatePost = (postData: {
+    title: string;
+    description?: string;
+    destination: string;
+    images: string[];
+    duration?: string;
+    activities?: string[];
+    hotels?: string[];
+    rating?: number;
+    isPublic: boolean;
+    isEditable: boolean;
+    isBucketList: boolean;
+  }) => {
+    const newPost: TripPost = {
+      id: `post-${Date.now()}`,
+      userId: user!.id,
+      author: {
+        id: user!.id,
+        name: user!.name,
+        avatar: user?.avatar,
+      },
+      ...postData,
+      createdAt: new Date().toISOString(),
+      shareLink: `${window.location.origin}/post/${Date.now()}`,
+    };
+
+    setTripPosts(prev => [newPost, ...prev]);
+    
+    toast.success('Post created! 🎉', {
+      description: postData.isPublic 
+        ? 'Your trip is now live for everyone to see!' 
+        : 'Share the link with friends to collaborate',
+    });
+
+    // Show share link
+    setTimeout(() => {
+      if (newPost.shareLink) {
+        navigator.clipboard.writeText(newPost.shareLink);
+        toast.success('Share link copied to clipboard!');
+      }
+    }, 1000);
+
+    navigate('/home');
+  };
+
+  return (
+    <>
+      <CreatePostScreen
+        onCreatePost={handleCreatePost}
+        onCancel={() => navigate('/home')}
+        currentUser={{
+          id: user!.id,
+          name: user!.name,
+          avatar: user?.avatar,
+        }}
+      />
+      <BottomTabNavigation
+        activeTab="create"
+        onTabChange={(tab) => {
+          if (tab === 'feed') navigate('/home');
+          if (tab === 'adventures') navigate('/adventures');
+          if (tab === 'chat') navigate('/chat');
+          if (tab === 'profile') navigate('/profile');
+        }}
+      />
+    </>
+  );
+}
+
+// Chat Page Component (/chat)
+function ChatPage() {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <ChatScreen />
+      <BottomTabNavigation
+        activeTab="chat"
+        onTabChange={(tab) => {
+          if (tab === 'feed') navigate('/home');
+          if (tab === 'adventures') navigate('/adventures');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'profile') navigate('/profile');
+        }}
+      />
+    </>
   );
 }
 

@@ -4,6 +4,8 @@ export interface User {
   location: string;
   interests: string[];
   avatar?: string;
+  email?: string;
+  budget?: number;
 }
 
 export interface Friend {
@@ -82,4 +84,29 @@ export interface ItineraryDay {
 export interface SavedAdventure extends Adventure {
   savedAt: string;
   userRating?: number;
+}
+
+// Trip Post for user-generated content
+export interface TripPost {
+  id: string;
+  userId: string;
+  author: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  title: string;
+  description?: string;
+  destination: string;
+  images: string[];
+  duration?: string;
+  activities?: string[];
+  hotels?: string[];
+  rating?: number; // 1-5 stars for completed trips
+  isPublic: boolean;
+  isEditable: boolean;
+  isBucketList: boolean; // true if planned, false if completed
+  createdAt: string;
+  updatedAt?: string;
+  shareLink?: string;
 }
