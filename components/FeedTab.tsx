@@ -36,7 +36,7 @@ export function FeedTab({
   const handleSwipeRight = (adventure: Adventure, rating: number) => {
     onSaveTrip?.(adventure, rating);
     setRemovedCards(prev => [...prev, adventure.id]);
-    toast.success('Saved! 🎉', {
+    toast.success('Saved to your profile!', {
       description: `${adventure.title} added to your adventures`,
     });
     

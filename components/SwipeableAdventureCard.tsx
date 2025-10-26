@@ -70,12 +70,28 @@ export function SwipeableAdventureCard({
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const offset = info.offset.x;
     
-    if (Math.abs(offset) > SWIPE_THRESHOLD) {
-      if (offset > 0) {
-        setTimeout(() => onSwipeRight(adventure, rating), 600);
-      } else {
-        setTimeout(() => onSwipeLeft(adventure), 600);
-      }
+    // Convert offset to percentage (150 is max, so -150 to 150 maps to 0 to 100%)
+    const percentage = ((offset + 150) / 300) * 100;
+    
+    // If released in neutral zone (45-55%), snap back to center
+    if (percentage >= 45 && percentage <= 55) {
+      setRating(50);
+      x.set(0); // Snap back to center
+      return;
+    }
+    
+    // If not past threshold, also snap back to center
+    if (Math.abs(offset) <= SWIPE_THRESHOLD) {
+      setRating(50);
+      x.set(0); // Snap back to center
+      return;
+    }
+    
+    // Card was swiped past threshold
+    if (offset > 0) {
+      setTimeout(() => onSwipeRight(adventure, rating), 600);
+    } else {
+      setTimeout(() => onSwipeLeft(adventure), 600);
     }
   };
 
@@ -131,6 +147,12 @@ export function SwipeableAdventureCard({
       }}
       drag="x"
       dragConstraints={{ left: -150, right: 150 }}
+      onDrag={(event, info) => {
+        const offset = info.offset.x;
+        // Convert offset to percentage and update rating to sync slider
+        const percentage = ((offset + 150) / 300) * 100;
+        setRating(Math.round(percentage));
+      }}
       onDragEnd={handleDragEnd}
       whileTap={{ cursor: 'grabbing' }}
     >
@@ -156,7 +178,10 @@ export function SwipeableAdventureCard({
           {/* FRONT OF CARD */}
           <div
             className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white"
-            style={{ backfaceVisibility: 'hidden' }}
+            style={{ 
+              backfaceVisibility: 'hidden',
+              pointerEvents: isFlipped ? 'none' : 'auto'
+            }}
             onClick={() => setIsFlipped(true)}
           >
             {/* Image Carousel */}
@@ -207,7 +232,8 @@ export function SwipeableAdventureCard({
             className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-white"
             style={{ 
               backfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)'
+              transform: 'rotateY(180deg)',
+              pointerEvents: isFlipped ? 'auto' : 'none'
             }}
           >
             <div className="h-full overflow-y-auto">
