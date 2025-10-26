@@ -14,6 +14,7 @@ import {
   Info,
   Map,
   RotateCcw,
+  Check,
 } from 'lucide-react';
 import { Adventure } from '../types';
 
@@ -113,10 +114,10 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
     
     if (info.offset.x > swipeThreshold || (isQuickSwipe && info.velocity.x > 0)) {
       // Swipe right - Save
-      handleSaveAnimation();
+      onSave();
     } else if (info.offset.x < -swipeThreshold || (isQuickSwipe && info.velocity.x < 0)) {
       // Swipe left - Pass
-      handlePassAnimation();
+      onPass();
     } else {
       // Snap back to center with spring animation
       controls.start({
@@ -180,35 +181,23 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="relative touch-none"
     >
-      {/* Swipe Indicators - Fixed position */}
+      {/* Gradient lighting on card edges */}
       <div className="absolute inset-0 pointer-events-none z-20">
-        {/* Pass Indicator (Left) */}
+        {/* Left side gradient (Pass) */}
         <motion.div
-          className="absolute top-8 left-8 bg-[var(--ios-red)] text-white px-6 py-3 rounded-full ios-shadow-xl border-4 border-white"
+          className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-red-500/90 to-transparent"
           style={{ 
             opacity: passOpacity,
-            scale: passScale,
           }}
-        >
-          <div className="flex items-center gap-2">
-            <XIcon className="w-6 h-6 stroke-[3]" />
-            <span className="text-lg">PASS</span>
-          </div>
-        </motion.div>
-
-        {/* Save Indicator (Right) */}
+        />
+        
+        {/* Right side gradient (Save) */}
         <motion.div
-          className="absolute top-8 right-8 bg-[var(--ios-green)] text-white px-6 py-3 rounded-full ios-shadow-xl border-4 border-white"
-          style={{
+          className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-green-500/90 to-transparent"
+          style={{ 
             opacity: saveOpacity,
-            scale: saveScale,
           }}
-        >
-          <div className="flex items-center gap-2">
-            <Bookmark className="w-6 h-6 stroke-[3]" />
-            <span className="text-lg">SAVE</span>
-          </div>
-        </motion.div>
+        />
       </div>
 
       {/* Draggable Card Container */}

@@ -553,23 +553,19 @@ export function SwipeableAdventureCard({
         </motion.div>
       </div>
 
-      {/* Swipe indicators */}
+      {/* Gradient lighting on card edges */}
       <motion.div
-        className="absolute -left-4 top-1/2 -translate-y-1/2 bg-red-500 text-white px-4 py-2 rounded-full text-sm rotate-12"
+        className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-red-500/90 to-transparent pointer-events-none z-20"
         style={{
-          opacity: useTransform(x, [-150, 0], [1, 0]),
+          opacity: useTransform(x, [-50, -10], [1, 0]),
         }}
-      >
-        NOPE
-      </motion.div>
+      />
       <motion.div
-        className="absolute -right-4 top-1/2 -translate-y-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm -rotate-12"
+        className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-green-500/90 to-transparent pointer-events-none z-20"
         style={{
-          opacity: useTransform(x, [0, 150], [0, 1]),
+          opacity: useTransform(x, [10, 50], [0, 1]),
         }}
-      >
-        LIKE
-      </motion.div>
+      />
 
       {/* Bottom Slider - Only visible when front is showing */}
       {!isFlipped && (
