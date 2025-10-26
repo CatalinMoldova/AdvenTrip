@@ -350,36 +350,13 @@ export function SwipeableAdventureCard({
                       </Button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => {
-                        // Use Google Flights which is more reliable and supports "anytime" for lowest prices
-                        const origin = encodeURIComponent(startLocation);
-                        const destination = encodeURIComponent(adventure.destination);
-                        
-                        // Use Google Flights with "anytime" to show cheapest flights in next 6 months
-                        const googleFlightsUrl = `https://www.google.com/flights?q=flights+from+${origin}+to+${destination}&departure_date=anytime&sort=price_a`;
-                        window.open(googleFlightsUrl, '_blank');
-                      }}
-                      className="w-full text-left p-3 rounded-lg border-2 border-green-500 hover:bg-green-50 transition-all group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-green-800 font-medium">
-                            {transportMode === 'flight' ? 'Flight' : transportMode} • {
-                              transportMode === 'flight' 
-                                ? flightOptions.find(f => f.id === selectedFlight)?.label 
-                                : 'Standard'
-                            }
-                          </div>
-                          <div className="text-xs text-green-600 mt-1">
-                            {transportMode === 'flight' && flightOptions.find(f => f.id === selectedFlight)
-                              ? `From $${flightOptions.find(f => f.id === selectedFlight)?.price}`
-                              : 'Click to book'}
-                          </div>
-                        </div>
-                        <ExternalLink className="w-4 h-4 text-green-600 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </button>
+                    <div className="text-green-800">
+                      {transportMode === 'flight' && flightOptions.find(f => f.id === selectedFlight)
+                        ? `${flightOptions.find(f => f.id === selectedFlight)?.label} • $${flightOptions.find(f => f.id === selectedFlight)?.price}`
+                        : transportMode === 'flight' 
+                          ? 'Flight • Economy'
+                          : transportMode}
+                    </div>
                   )}
                 </div>
 
