@@ -77,7 +77,7 @@ export function AdventuresTab({
 
     if (isLike) {
       onSaveToFolder?.(folderId, adventure, rating);
-      toast.success('Added to folder! 📁');
+      toast.success('Saved to your profile!');
     } else {
       toast.info('Passed');
     }
