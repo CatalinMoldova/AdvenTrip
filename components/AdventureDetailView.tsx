@@ -26,7 +26,7 @@ export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDet
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 overflow-y-auto">
       <div className="min-h-screen p-4 flex items-start justify-center py-8">
-        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border-2 border-purple-100">
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border-2 border-green-100">
           {/* Header */}
           <div className="relative">
             <div className="h-80 overflow-hidden">
@@ -52,7 +52,7 @@ export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDet
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6 pb-20">
             {/* Key Info */}
             <div className="grid grid-cols-3 gap-4">
               <Card className="p-5 text-center bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 hover:shadow-lg transition-shadow">
@@ -196,11 +196,11 @@ export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDet
             <div className="flex gap-3">
               <Button
                 onClick={onSave}
-                className="flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all"
+                className="flex-1 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all"
               >
                 Save Adventure 💫
               </Button>
-              <Button onClick={onClose} variant="outline" className="flex-1 border-purple-200 hover:bg-purple-50">
+              <Button onClick={onClose} variant="outline" className="flex-1 border-green-200 hover:bg-green-50">
                 Close
               </Button>
             </div>

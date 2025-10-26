@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Plus, FolderOpen, Users, User as UserIcon, ChevronRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SwipeableAdventureCard } from './SwipeableAdventureCard';
+import { AdventureDetailView } from './AdventureDetailView';
 import { toast } from 'sonner';
 
 interface AdventuresTabProps {
@@ -48,6 +49,7 @@ export function AdventuresTab({
 
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [currentFeedIndex, setCurrentFeedIndex] = useState(0);
+  const [selectedAdventure, setSelectedAdventure] = useState<Adventure | null>(null);
 
   const handleSwipeInFolder = (
     folderId: string, 
@@ -266,7 +268,7 @@ export function AdventuresTab({
       <div className="flex-1 relative overflow-y-auto">
         <div className="min-h-full flex flex-col">
           {/* Card Feed Section */}
-          <div className="flex-1 flex items-center justify-center p-6">
+          <div className="min-h-[75vh] flex items-center justify-center p-6">
             {currentFeedIndex < visibleAdventures.length ? (
               <div className="relative w-full max-w-lg" style={{ height: '75vh' }}>
                 <AnimatePresence>
@@ -285,11 +287,6 @@ export function AdventuresTab({
                     startLocation={user?.location}
                   />
                 </AnimatePresence>
-
-                {/* Counter */}
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm z-30">
-                  {currentFeedIndex + 1} / {visibleAdventures.length}
-                </div>
               </div>
             ) : (
               <div className="text-center max-w-md py-12">
@@ -297,16 +294,30 @@ export function AdventuresTab({
                   <Sparkles className="w-10 h-10 text-green-400" />
                 </div>
                 <h3 className="text-xl text-green-800 mb-2">All cards reviewed!</h3>
-                <p className="text-green-600">
-                  Scroll down to see your saved adventures
+                <p className="text-green-600 mb-4">
+                  {currentFolder?.savedAdventures.length > 0 
+                    ? `You've saved ${currentFolder.savedAdventures.length} ${currentFolder.savedAdventures.length === 1 ? 'trip' : 'trips'}!`
+                    : 'Scroll down to see more'
+                  }
                 </p>
+                {currentFolder?.savedAdventures.length > 0 && (
+                  <Button
+                    onClick={() => {
+                      const savedSection = document.getElementById('saved-adventures');
+                      savedSection?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    View Saved Trips
+                  </Button>
+                )}
               </div>
             )}
           </div>
 
           {/* Saved Adventures Section */}
           {currentFolder && currentFolder.savedAdventures.length > 0 && (
-            <div className="border-t border-green-200 bg-white">
+            <div id="saved-adventures" className="border-t border-green-200 bg-white">
               <div className="p-6">
                 <h3 className="text-xl text-green-800 mb-4 flex items-center gap-2">
                   <FolderOpen className="w-5 h-5" />
@@ -317,6 +328,7 @@ export function AdventuresTab({
                   {currentFolder.savedAdventures.map((saved) => (
                     <div
                       key={saved.adventure.id}
+                      onClick={() => setSelectedAdventure(saved.adventure)}
                       className="bg-green-50 border border-green-200 rounded-xl p-4 hover:border-green-300 transition-all cursor-pointer"
                     >
                       <div className="flex items-start gap-4">
@@ -356,6 +368,18 @@ export function AdventuresTab({
           )}
         </div>
       </div>
+
+      {/* Adventure Detail Modal */}
+      {selectedAdventure && (
+        <AdventureDetailView
+          adventure={selectedAdventure}
+          onClose={() => setSelectedAdventure(null)}
+          onSave={() => {
+            setSelectedAdventure(null);
+            toast.success('Adventure updated!');
+          }}
+        />
+      )}
     </div>
   );
 }
