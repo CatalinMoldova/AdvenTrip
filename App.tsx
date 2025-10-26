@@ -11,6 +11,8 @@ import { CreateAdventureWizard } from './components/CreateAdventureWizard';
 import { GroupJoinScreen } from './components/GroupJoinScreen';
 import { InviteOnboardingScreen } from './components/InviteOnboardingScreen';
 import { GroupAdventureManagement } from './components/GroupAdventureManagement';
+import { TripIdeasPage } from './components/TripIdeasPage';
+import { HikingTripPage } from './components/HikingTripPage';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 import { mockAdventures } from './data/mockData';
@@ -94,6 +96,8 @@ function AppContent() {
           <Route path="/home" element={user ? <FeedPage /> : <Navigate to="/get-started" />} />
           <Route path="/adventures" element={user ? <AdventuresPage /> : <Navigate to="/get-started" />} />
           <Route path="/profile" element={user ? <ProfilePage /> : <Navigate to="/get-started" />} />
+          <Route path="/trip-ideas" element={<TripIdeasPage />} />
+          <Route path="/hiking" element={<HikingTripPage />} />
           <Route path="/join/:inviteId" element={<GroupJoinPage />} />
           <Route path="/group-management" element={user && selectedGroupAdventure ? <GroupManagementPage /> : <Navigate to="/adventures" />} />
         </Routes>

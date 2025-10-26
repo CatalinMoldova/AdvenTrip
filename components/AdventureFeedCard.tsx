@@ -14,8 +14,11 @@ import {
   Info,
   Map,
   RotateCcw,
+  Plane,
+  Hotel,
 } from 'lucide-react';
 import { Adventure } from '../types';
+import { HotelSearchBack } from './HotelSearchBack';
 
 interface AdventureFeedCardProps {
   adventure: Adventure;
@@ -295,10 +298,10 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
 
                 {/* Flip Hint */}
                 <motion.div 
-                  className="absolute top-4 left-1/2 -translate-x-1/2 text-white/80 text-xs bg-black/30 backdrop-blur px-3 py-1 rounded-full pointer-events-none"
+                  className="absolute top-14 left-1/2 -translate-x-1/2 text-white/80 text-xs bg-black/30 backdrop-blur px-3 py-1 rounded-full pointer-events-none"
                   animate={{ opacity: isDragging ? 0 : 1 }}
                 >
-                  Tap to flip
+                  Tap to see hotels
                 </motion.div>
 
                 {/* Image Indicators - iOS style */}
@@ -322,6 +325,13 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
                   <Badge className="bg-[var(--ios-green)] text-white px-3 py-1.5 ios-shadow rounded-full">
                     <DollarSign className="w-4 h-4 mr-1" />
                     {adventure.price}
+                  </Badge>
+                </div>
+
+                {/* Hotel Prices Hint */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
+                  <Badge className="bg-[var(--ios-blue)]/90 backdrop-blur-sm text-white px-3 py-1.5 ios-shadow rounded-full text-xs">
+                    Hotels from $24/night
                   </Badge>
                 </div>
 
@@ -383,6 +393,32 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
                   </div>
                 </div>
 
+                {/* Booking Links - iOS style */}
+                <div className="grid grid-cols-2 gap-2 pt-2" onPointerDown={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const flightUrl = `https://www.google.com/flights?q=flights+to+${encodeURIComponent(adventure.destination)}&departure_date=anytime`;
+                      window.open(flightUrl, '_blank');
+                    }}
+                    className="hover:bg-[var(--ios-blue)]/10 hover:text-[var(--ios-blue)] hover:border-[var(--ios-blue)]/30 rounded-xl border-[var(--border)]"
+                  >
+                    <Plane className="w-4 h-4 mr-2" />
+                    Book Flight
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const hotelUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(adventure.destination)}`;
+                      window.open(hotelUrl, '_blank');
+                    }}
+                    className="hover:bg-[var(--ios-green)]/10 hover:text-[var(--ios-green)] hover:border-[var(--ios-green)]/30 rounded-xl border-[var(--border)]"
+                  >
+                    <Hotel className="w-4 h-4 mr-2" />
+                    Book Hotel
+                  </Button>
+                </div>
+
                 {/* Actions - iOS style */}
                 <div className="flex gap-2 pt-2" onPointerDown={(e) => e.stopPropagation()}>
                   <Button
@@ -428,7 +464,7 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
               </div>
             </motion.div>
 
-            {/* Back Side - Detailed Description */}
+            {/* Back Side - Hotel Search */}
             <motion.div
               className="absolute inset-0 bg-white/90 backdrop-blur-lg rounded-[20px] p-6 overflow-y-auto"
               style={{ 
@@ -437,102 +473,10 @@ export const AdventureFeedCard: React.FC<AdventureFeedCardProps> = ({
                 transform: 'rotateY(180deg)',
               }}
             >
-              <div className="space-y-4">
-                {/* Header with flip back button */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-[var(--foreground)] mb-2">{adventure.title}</h3>
-                    <div className="flex items-center gap-3 text-sm text-[var(--ios-gray)]">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {adventure.destination}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {adventure.duration}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="w-4 h-4" />
-                        {adventure.price}
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleHeaderClick}
-                    className="shrink-0 rounded-full"
-                  >
-                    <RotateCcw className="w-5 h-5" />
-                  </Button>
-                </div>
-
-                {/* Full Description */}
-                <div className="space-y-3">
-                  <h4 className="text-[var(--foreground)]">About this adventure</h4>
-                  <p className="text-sm text-[var(--foreground)] leading-relaxed">
-                    {adventure.description}
-                  </p>
-                  <p className="text-sm text-[var(--ios-gray)] leading-relaxed">
-                    This carefully curated experience offers the perfect blend of adventure, culture, and relaxation. 
-                    Immerse yourself in local traditions, explore breathtaking landscapes, and create memories that will last a lifetime.
-                  </p>
-                </div>
-
-                {/* All Activities */}
-                <div className="space-y-2">
-                  <h4 className="text-[var(--foreground)]">What you'll do</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {adventure.activities.map((activity) => (
-                      <Badge key={activity} className="text-xs bg-[var(--ios-gray5)] text-[var(--foreground)] rounded-full">
-                        {activity}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Highlights */}
-                <div className="space-y-2">
-                  <h4 className="text-[var(--foreground)]">Highlights</h4>
-                  <ul className="space-y-2 text-sm text-[var(--foreground)]">
-                    <li className="flex items-start gap-2">
-                      <span className="text-[var(--ios-blue)] mt-1">•</span>
-                      <span>Expert local guides with deep knowledge of the area</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[var(--ios-blue)] mt-1">•</span>
-                      <span>Authentic cultural experiences and local cuisine</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[var(--ios-blue)] mt-1">•</span>
-                      <span>Small group sizes for a personalized experience</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[var(--ios-blue)] mt-1">•</span>
-                      <span>Sustainable and responsible travel practices</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Actions on back */}
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={handlePassAnimation}
-                    className="flex-1 hover:bg-[var(--ios-red)]/10 hover:text-[var(--ios-red)] hover:border-[var(--ios-red)]/30 rounded-xl border-[var(--border)]"
-                  >
-                    <XIcon className="w-4 h-4 mr-2" />
-                    Pass
-                  </Button>
-                  <Button
-                    onClick={handleSaveAnimation}
-                    className="flex-1 bg-[var(--ios-blue)] hover:bg-[#0051D5] active:scale-95 transition-transform rounded-xl"
-                  >
-                    <Bookmark className="w-4 h-4 mr-2" />
-                    Save
-                  </Button>
-                </div>
-              </div>
+              <HotelSearchBack 
+                destination={adventure.destination}
+                onFlipBack={handleHeaderClick}
+              />
             </motion.div>
           </Card>
         </motion.div>

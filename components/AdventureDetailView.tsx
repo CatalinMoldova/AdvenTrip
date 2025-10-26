@@ -7,8 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { X, MapPin, Clock, DollarSign, Hotel, Star, Calendar, Map } from 'lucide-react';
+import { X, MapPin, Clock, DollarSign, Hotel, Star, Calendar, Map, Plane } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { FlightSearchTab } from './FlightSearchTab';
 
 interface AdventureDetailViewProps {
   adventure: Adventure;
@@ -109,10 +110,14 @@ export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDet
 
             {/* Tabs */}
             <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
                 <TabsTrigger value="hotel">Hotel</TabsTrigger>
+                <TabsTrigger value="flights">
+                  <Plane className="w-4 h-4 mr-1" />
+                  Flights
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4 mt-4">
@@ -189,6 +194,16 @@ export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDet
                     Comfortable accommodations with modern amenities, perfect for relaxing after a day of adventures.
                   </p>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="flights" className="space-y-4 mt-4">
+                <FlightSearchTab
+                  origin="New York"
+                  destination={adventure.destination}
+                  departureDate={startDate}
+                  returnDate={endDate}
+                  travelers={1}
+                />
               </TabsContent>
             </Tabs>
 

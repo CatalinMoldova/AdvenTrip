@@ -4,7 +4,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Adventure } from '../types';
 import { 
   MapPin, Clock, DollarSign, Calendar, Hotel as HotelIcon, 
-  Plane, Check, Edit2, X as XIcon, ChevronDown
+  Plane, Check, Edit2, X as XIcon, ChevronDown, ExternalLink
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { searchFlights, Flight } from '@/src/services/flightApi';
 
 interface SwipeableAdventureCardProps {
   adventure: Adventure;
@@ -47,6 +48,10 @@ export function SwipeableAdventureCard({
   const [customBudget, setCustomBudget] = useState(adventure.price);
   const [selectedActivities, setSelectedActivities] = useState<string[]>(adventure.activities);
   const [transportMode, setTransportMode] = useState('flight');
+
+  // Flight data from MCP API
+  const [flightData, setFlightData] = useState<Flight[]>([]);
+  const [isLoadingFlights, setIsLoadingFlights] = useState(false);
 
   const x = useMotionValue(0);
   // Make rotation proportional to x position for sync
@@ -106,12 +111,50 @@ export function SwipeableAdventureCard({
     );
   };
 
-  const flightOptions = [
-    { id: 'economy', label: 'Economy', price: Math.round(adventure.price * 0.3) },
-    { id: 'premium', label: 'Premium Economy', price: Math.round(adventure.price * 0.45) },
-    { id: 'business', label: 'Business Class', price: Math.round(adventure.price * 0.65) },
-    { id: 'first', label: 'First Class', price: Math.round(adventure.price * 0.85) },
-  ];
+  // Fetch real-time flight data from MCP
+  const fetchFlightData = async () => {
+    setIsLoadingFlights(true);
+    try {
+      const departureDate = new Date();
+      departureDate.setDate(departureDate.getDate() + 30); // 30 days from now
+      
+      const result = await searchFlights({
+        origin: startLocation,
+        destination: adventure.destination,
+        departureDate: departureDate.toISOString().split('T')[0],
+        travelers: 1
+      });
+      
+      setFlightData(result.flights || []);
+    } catch (error) {
+      console.error('Failed to fetch flights:', error);
+    } finally {
+      setIsLoadingFlights(false);
+    }
+  };
+
+  // Fetch flights when component mounts or when flipped to back
+  useEffect(() => {
+    if (isFlipped && flightData.length === 0) {
+      fetchFlightData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFlipped]);
+
+  // Create flight options from real-time data or fallback to mock prices
+  const flightOptions = flightData.length > 0 
+    ? flightData.slice(0, 4).map((flight, index) => ({
+        id: `flight-${index}`,
+        label: `${flight.airline} - ${flight.class}`,
+        price: flight.price,
+        flight: flight
+      }))
+    : [
+        { id: 'economy', label: 'Economy', price: Math.round(adventure.price * 0.3) },
+        { id: 'premium', label: 'Premium Economy', price: Math.round(adventure.price * 0.45) },
+        { id: 'business', label: 'Business Class', price: Math.round(adventure.price * 0.65) },
+        { id: 'first', label: 'First Class', price: Math.round(adventure.price * 0.85) },
+      ];
 
   const hotelOptions = [
     { id: 'budget', name: 'Budget Inn', stars: 3, price: adventure.hotel.pricePerNight * 0.6 },
@@ -270,24 +313,30 @@ export function SwipeableAdventureCard({
                           <label className="text-xs text-green-600 mb-2 block">
                             Flight from {startLocation} to {adventure.destination}
                           </label>
-                          <div className="space-y-2">
-                            {flightOptions.map((option) => (
-                              <button
-                                key={option.id}
-                                onClick={() => setSelectedFlight(option.id)}
-                                className={`w-full p-3 rounded-lg border text-left transition-all ${
-                                  selectedFlight === option.id
-                                    ? 'border-black bg-black text-white'
-                                    : 'border-black/20 bg-white text-green-800 hover:border-black/40'
-                                }`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm">{option.label}</span>
-                                  <span className="text-sm">${option.price}</span>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
+                          {isLoadingFlights ? (
+                            <div className="text-center py-4 text-sm text-green-600">
+                              Loading flight prices...
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {flightOptions.map((option) => (
+                                <button
+                                  key={option.id}
+                                  onClick={() => setSelectedFlight(option.id)}
+                                  className={`w-full p-3 rounded-lg border text-left transition-all ${
+                                    selectedFlight === option.id
+                                      ? 'border-black bg-black text-white'
+                                      : 'border-black/20 bg-white text-green-800 hover:border-black/40'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm">{option.label}</span>
+                                    <span className="text-sm">${option.price}</span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                       
@@ -301,13 +350,36 @@ export function SwipeableAdventureCard({
                       </Button>
                     </div>
                   ) : (
-                    <div className="text-green-800">
-                      {transportMode === 'flight' ? 'Flight' : transportMode} • {
-                        transportMode === 'flight' 
-                          ? flightOptions.find(f => f.id === selectedFlight)?.label 
-                          : 'Standard'
-                      }
-                    </div>
+                    <button
+                      onClick={() => {
+                        // Use Google Flights which is more reliable and supports "anytime" for lowest prices
+                        const origin = encodeURIComponent(startLocation);
+                        const destination = encodeURIComponent(adventure.destination);
+                        
+                        // Use Google Flights with "anytime" to show cheapest flights in next 6 months
+                        const googleFlightsUrl = `https://www.google.com/flights?q=flights+from+${origin}+to+${destination}&departure_date=anytime&sort=price_a`;
+                        window.open(googleFlightsUrl, '_blank');
+                      }}
+                      className="w-full text-left p-3 rounded-lg border-2 border-green-500 hover:bg-green-50 transition-all group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-green-800 font-medium">
+                            {transportMode === 'flight' ? 'Flight' : transportMode} • {
+                              transportMode === 'flight' 
+                                ? flightOptions.find(f => f.id === selectedFlight)?.label 
+                                : 'Standard'
+                            }
+                          </div>
+                          <div className="text-xs text-green-600 mt-1">
+                            {transportMode === 'flight' && flightOptions.find(f => f.id === selectedFlight)
+                              ? `From $${flightOptions.find(f => f.id === selectedFlight)?.price}`
+                              : 'Click to book'}
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-green-600 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
                   )}
                 </div>
 
