@@ -372,3 +372,10 @@ html {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Image carousel transitions */
+.transition-opacity {
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 1000ms;
+}
