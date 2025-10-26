@@ -70,12 +70,28 @@ export function SwipeableAdventureCard({
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const offset = info.offset.x;
     
-    if (Math.abs(offset) > SWIPE_THRESHOLD) {
-      if (offset > 0) {
-        setTimeout(() => onSwipeRight(adventure, rating), 600);
-      } else {
-        setTimeout(() => onSwipeLeft(adventure), 600);
-      }
+    // Convert offset to percentage (150 is max, so -150 to 150 maps to 0 to 100%)
+    const percentage = ((offset + 150) / 300) * 100;
+    
+    // If released in neutral zone (45-55%), snap back to center
+    if (percentage >= 45 && percentage <= 55) {
+      setRating(50);
+      x.set(0); // Snap back to center
+      return;
+    }
+    
+    // If not past threshold, also snap back to center
+    if (Math.abs(offset) <= SWIPE_THRESHOLD) {
+      setRating(50);
+      x.set(0); // Snap back to center
+      return;
+    }
+    
+    // Card was swiped past threshold
+    if (offset > 0) {
+      setTimeout(() => onSwipeRight(adventure, rating), 600);
+    } else {
+      setTimeout(() => onSwipeLeft(adventure), 600);
     }
   };
 
@@ -131,22 +147,16 @@ export function SwipeableAdventureCard({
       }}
       drag="x"
       dragConstraints={{ left: -150, right: 150 }}
+      onDrag={(event, info) => {
+        const offset = info.offset.x;
+        // Convert offset to percentage and update rating to sync slider
+        const percentage = ((offset + 150) / 300) * 100;
+        setRating(Math.round(percentage));
+      }}
       onDragEnd={handleDragEnd}
       whileTap={{ cursor: 'grabbing' }}
     >
       <div className="relative w-full h-full" style={{ perspective: '1000px' }}>
-        {/* Gradient overlays for tilt direction */}
-        <div className="absolute inset-0 pointer-events-none z-20">
-          <motion.div 
-            className="absolute left-0 top-0 bottom-0 w-1/3 bg-gradient-to-r from-red-500/60 to-transparent rounded-l-3xl"
-            style={{ opacity: useTransform(x, [-150, -10, 0], [1, 0.5, 0]) }}
-          />
-          <motion.div 
-            className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-green-500/60 to-transparent rounded-r-3xl"
-            style={{ opacity: useTransform(x, [0, 10, 150], [0, 0.5, 1]) }}
-          />
-        </div>
-
         <motion.div
           className="relative w-full h-full"
           animate={{ rotateY: isFlipped ? 180 : 0 }}
