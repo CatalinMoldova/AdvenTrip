@@ -19,7 +19,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdventureRequest, GroupMember } from '../types';
 import { toast } from 'sonner';
-// import { MemberProfileEdit } from './MemberProfileEdit';
+import { MemberProfileEditSimple } from './MemberProfileEditSimple';
 
 interface GroupAdventureManagementProps {
   adventureRequest: AdventureRequest;
@@ -482,16 +482,14 @@ export function GroupAdventureManagement({
       </div>
 
       {/* Member Profile Edit Dialog */}
-      {/* Temporarily commented out to debug white screen issue
       {editingMember && (
-        <MemberProfileEdit
+        <MemberProfileEditSimple
           member={editingMember}
           isOpen={!!editingMember}
           onClose={() => setEditingMember(null)}
           onSave={handleMemberUpdate}
         />
       )}
-      */}
     </div>
   );
 }
