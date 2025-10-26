@@ -353,15 +353,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
               <h2 className="text-2xl text-black mb-2">How long will it last?</h2>
               <p className="text-sm text-black/60">Number of days</p>
             </div>
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setDuration(String(Math.max(1, parseInt(duration || '1') - 1)))}
-                className="w-12 h-12 rounded-full border-black/20 text-black"
-              >
-                -
-              </Button>
+            <div className="flex items-center justify-center">
               <Input
                 type="number"
                 value={duration}
@@ -371,14 +363,6 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                 min="1"
                 autoFocus
               />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setDuration(String(parseInt(duration || '0') + 1))}
-                className="w-12 h-12 rounded-full border-black/20 text-black"
-              >
-                +
-              </Button>
             </div>
             <p className="text-center text-black/60 text-sm">
               {duration ? `${duration} ${parseInt(duration) === 1 ? 'day' : 'days'}` : 'Enter duration'}

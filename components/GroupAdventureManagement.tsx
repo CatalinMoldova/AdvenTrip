@@ -394,10 +394,7 @@ export function GroupAdventureManagement({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Card 
-                        className="cursor-pointer hover:shadow-lg transition-shadow"
-                        onClick={() => setSelectedMember(member)}
-                      >
+                      <Card className="hover:shadow-lg transition-shadow">
                         <CardContent className="p-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="w-12 h-12">
@@ -426,6 +423,17 @@ export function GroupAdventureManagement({
                                 )}
                               </div>
                             </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingMember(member);
+                              }}
+                              className="ml-2"
+                            >
+                              Edit
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -468,6 +476,16 @@ export function GroupAdventureManagement({
           </Card>
         </motion.div>
       </div>
+
+      {/* Member Profile Edit Dialog */}
+      {editingMember && (
+        <MemberProfileEdit
+          member={editingMember}
+          isOpen={!!editingMember}
+          onClose={() => setEditingMember(null)}
+          onSave={handleMemberUpdate}
+        />
+      )}
     </div>
   );
 }
