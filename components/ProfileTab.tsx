@@ -7,6 +7,7 @@ import { MapPin, User as UserIcon, Bookmark, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { AdventureDetailView } from './AdventureDetailView';
 
 interface ProfileTabProps {
   user: User | null;
@@ -28,6 +29,7 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
   const [selectedTransport, setSelectedTransport] = useState<string[]>([]);
+  const [selectedAdventure, setSelectedAdventure] = useState<Adventure | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -175,7 +177,8 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
                   key={item.adventure.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white border border-gray-200 rounded-2xl overflow-hidden"
+                  onClick={() => setSelectedAdventure(item.adventure)}
+                  className="bg-white border border-gray-200 rounded-2xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <div className="flex gap-4">
                     <div className="w-24 h-24 flex-shrink-0">
@@ -211,6 +214,18 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
           )}
         </div>
       </div>
+
+      {/* Adventure Detail Modal */}
+      {selectedAdventure && (
+        <AdventureDetailView
+          adventure={selectedAdventure}
+          onClose={() => setSelectedAdventure(null)}
+          onSave={() => {
+            setSelectedAdventure(null);
+            toast.success('Adventure updated!');
+          }}
+        />
+      )}
     </div>
   );
 }

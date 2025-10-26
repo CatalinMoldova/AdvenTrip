@@ -268,7 +268,7 @@ export function AdventuresTab({
       <div className="flex-1 relative overflow-y-auto">
         <div className="min-h-full flex flex-col">
           {/* Card Feed Section */}
-          <div className="flex-1 flex items-center justify-center p-6">
+          <div className="min-h-[75vh] flex items-center justify-center p-6">
             {currentFeedIndex < visibleAdventures.length ? (
               <div className="relative w-full max-w-lg" style={{ height: '75vh' }}>
                 <AnimatePresence>
