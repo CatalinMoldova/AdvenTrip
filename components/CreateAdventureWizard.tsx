@@ -167,7 +167,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           name: name.trim(),
           email: user?.email || '',
           avatar: user?.avatar || '',
-          budget: user?.budget || 1000,
+          budget: undefined,
           preferences: activities.map(a => a.replace(/[^\w\s]/g, '').trim())
         }],
         status: 'pending',

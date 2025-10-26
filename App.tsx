@@ -146,11 +146,13 @@ export default function App() {
   };
 
   const handleInviteOnboardingComplete = (newUser: User, adventureId: string) => {
+    console.log('Invite onboarding complete for user:', newUser.name, 'adventureId:', adventureId);
     // Set the user as logged in
     setUser(newUser);
     
     // Find the adventure request and add the user as a member
     const adventureRequest = adventureRequests.find(req => req.id === adventureId);
+    console.log('Found adventure request:', adventureRequest);
     if (adventureRequest) {
       const updatedRequest = {
         ...adventureRequest,
@@ -161,39 +163,74 @@ export default function App() {
             name: newUser.name,
             email: newUser.email,
             avatar: newUser.avatar,
-            budget: newUser.budget,
+            budget: undefined,
             preferences: newUser.interests
           }
         ]
       };
       
       // Update the adventure request in the list
-      setAdventureRequests(prev => 
-        prev.map(req => req.id === adventureId ? updatedRequest : req)
-      );
-      
-      // Take user to main app and show the group adventure
-      setCurrentScreen('main');
-      setActiveTab('adventures');
-      
-      // Show success message with action button
-      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`, {
-        description: 'You can now access the full app and your group adventure',
-        duration: 5000,
-        action: {
-          label: 'View Group',
-          onClick: () => {
-            setSelectedGroupAdventure(updatedRequest);
-            setCurrentScreen('group-management');
-          }
-        }
+      setAdventureRequests(prev => {
+        const updated = prev.map(req => req.id === adventureId ? updatedRequest : req);
+        console.log('Updated adventure requests:', updated);
+        return updated;
       });
+      
+      // If the adventure request doesn't exist in the user's list, add it
+      setAdventureRequests(prev => {
+        const exists = prev.find(req => req.id === adventureId);
+        if (!exists) {
+          console.log('Adding new adventure request to user list:', updatedRequest);
+          return [...prev, updatedRequest];
+        }
+        console.log('Adventure request already exists in user list');
+        return prev;
+      });
+      
+      setSelectedGroupAdventure(updatedRequest);
+      setCurrentScreen('group-management');
+      
+      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`);
+    } else {
+      // If adventure request doesn't exist, create a placeholder for the invited user
+      const newAdventureRequest = {
+        id: adventureId,
+        name: 'Group Adventure',
+        userId: newUser.id,
+        mode: 'group' as const,
+        numberOfDays: 3,
+        activities: [],
+        customActivities: [],
+        transportation: '',
+        groupMembers: [{
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          avatar: newUser.avatar,
+          budget: undefined,
+          preferences: newUser.interests
+        }],
+        status: 'pending' as const,
+        createdAt: new Date().toISOString(),
+      };
+      
+      setAdventureRequests(prev => [...prev, newAdventureRequest]);
+      setSelectedGroupAdventure(newAdventureRequest);
+      setCurrentScreen('group-management');
+      
+      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`);
     }
   };
 
   const handleGroupManagementBack = () => {
     setCurrentScreen('main');
     setSelectedGroupAdventure(null);
+  };
+
+  const handleBackToApp = () => {
+    setCurrentScreen('main');
+    setSelectedGroupAdventure(null);
+    setActiveTab('adventures'); // Switch to adventures tab to show the group adventure
   };
 
   const handleGroupAdventureClick = (adventureRequest: AdventureRequest) => {
@@ -245,6 +282,13 @@ export default function App() {
           adventureRequest={selectedGroupAdventure}
           currentUser={user}
           onBack={handleGroupManagementBack}
+          onBackToApp={handleBackToApp}
+          onUpdateAdventure={(updatedAdventure) => {
+            setAdventureRequests(prev => 
+              prev.map(req => req.id === updatedAdventure.id ? updatedAdventure : req)
+            );
+            setSelectedGroupAdventure(updatedAdventure);
+          }}
           onShareLink={(link) => {
             navigator.clipboard.writeText(link);
             toast.success('Link copied to clipboard!');
