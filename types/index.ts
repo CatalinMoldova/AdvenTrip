@@ -3,6 +3,7 @@ export interface User {
   name: string;
   location: string;
   interests: string[];
+  avatar?: string;
 }
 
 export interface Friend {
@@ -13,6 +14,7 @@ export interface Friend {
 
 export interface GroupMember extends Friend {
   budget?: number;
+  currency?: string;
   preferences?: string[];
   transportation?: string;
   travelDistance?: number;

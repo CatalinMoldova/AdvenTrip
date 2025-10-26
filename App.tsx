@@ -240,6 +240,7 @@ function AdventuresPage() {
           adventures={mockAdventures}
           onCreateNew={() => setShowCreateWizard(true)}
           onSaveToFolder={(folderId: string, adventure: Adventure, rating: number) => handleSaveTrip(adventure, rating)}
+          onGroupAdventureClick={handleGroupAdventureClick}
           user={user!}
         />
       </div>
@@ -316,6 +317,7 @@ function GroupJoinPage() {
             email: newUser.email,
             avatar: newUser.avatar,
             budget: newUser.budget,
+            currency: 'USD',
             preferences: newUser.interests
           }
         ]

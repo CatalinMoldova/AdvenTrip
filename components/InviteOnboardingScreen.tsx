@@ -99,7 +99,7 @@ export const InviteOnboardingScreen: React.FC<InviteOnboardingScreenProps> = ({
       avatar: '',
       location: location.trim(),
       interests: selectedActivities,
-      budget: 1000,
+      budget: undefined,
       travelStyle: 'balanced',
       createdAt: new Date().toISOString(),
     };
