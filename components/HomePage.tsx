@@ -71,10 +71,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             {travelImages.map((_, index) => (
               <div
                 key={index}
-                className="w-12 h-1 bg-white/30 rounded-full overflow-hidden"
+                className="w-12 h-1 bg-green-100/30 rounded-full overflow-hidden"
               >
                 <div
-                  className={`h-full bg-white transition-all duration-100 ${
+                  className={`h-full bg-green-100 transition-all duration-100 ${
                     index === currentImageIndex
                       ? 'w-full'
                       : index < currentImageIndex
@@ -95,10 +95,19 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
           <div className="text-center space-y-12 max-w-5xl mx-auto">
             {/* Main Hero Content */}
             <div className="space-y-8">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-display tracking-tight text-white drop-shadow-2xl leading-tight">
+              {/* Logo */}
+              <div className="flex justify-center mb-8">
+                <img 
+                  src="/AdvenTrip Logo transparent.png" 
+                  alt="AdvenTrip Logo" 
+                  className="w-48 h-48 object-contain drop-shadow-2xl"
+                  style={{filter: 'drop-shadow(3px 3px 8px rgba(0,0,0,0.8))'}}
+                />
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-display tracking-tight text-green-100 drop-shadow-2xl leading-tight" style={{textShadow: '3px 3px 8px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,1)'}}>
                 Get your travel plans out of the group chat
               </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto drop-shadow-xl leading-relaxed">
+              <p className="text-lg md:text-xl text-green-100 max-w-3xl mx-auto drop-shadow-xl leading-relaxed" style={{textShadow: '2px 2px 6px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,1)'}}>
                 Plan, organize, and discover amazing adventures with your friends.
                 No more endless group chats and scattered plans.
               </p>
@@ -109,12 +118,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
               <Button
                 onClick={onGetStarted}
                 size="lg"
-                className="px-8 py-3 text-base font-semibold bg-white text-gray-900 hover:bg-gray-100 shadow-xl hover:shadow-2xl transition-all duration-300"
+                className="px-8 py-3 text-base font-semibold bg-green-100 text-black hover:bg-green-200 shadow-xl hover:shadow-2xl transition-all duration-300"
+                style={{boxShadow: '0 4px 6px rgba(0,0,0,0.3)'}}
               >
                 Get Started
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              <p className="text-sm text-white/80 drop-shadow-lg">
+              <p className="text-sm text-green-100 drop-shadow-lg" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,1)'}}>
                 Free to use • No signup required
               </p>
             </div>
@@ -148,7 +158,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
               <Button
                 onClick={onGetStarted}
                 size="lg"
-                className="px-6 py-3 text-base font-semibold"
+                className="px-6 py-3 text-base font-semibold bg-green-600 text-white hover:bg-green-700 shadow-lg"
+                style={{boxShadow: '0 4px 6px rgba(0,0,0,0.3)'}}
               >
                 Start Planning Your Trip
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -239,7 +250,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
               <Button
                 onClick={onGetStarted}
                 size="lg"
-                className="px-8 py-3 text-base font-semibold"
+                className="px-8 py-3 text-base font-semibold bg-green-600 text-white hover:bg-green-700 shadow-lg"
+                style={{boxShadow: '0 4px 6px rgba(0,0,0,0.3)'}}
               >
                 Let's Do This
                 <ArrowRight className="w-4 h-4 ml-2" />
