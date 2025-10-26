@@ -299,16 +299,30 @@ export function AdventuresTab({
                   <Sparkles className="w-10 h-10 text-green-400" />
                 </div>
                 <h3 className="text-xl text-green-800 mb-2">All cards reviewed!</h3>
-                <p className="text-green-600">
-                  Scroll down to see your saved adventures
+                <p className="text-green-600 mb-4">
+                  {currentFolder?.savedAdventures.length > 0 
+                    ? `You've saved ${currentFolder.savedAdventures.length} ${currentFolder.savedAdventures.length === 1 ? 'trip' : 'trips'}!`
+                    : 'Scroll down to see more'
+                  }
                 </p>
+                {currentFolder?.savedAdventures.length > 0 && (
+                  <Button
+                    onClick={() => {
+                      const savedSection = document.getElementById('saved-adventures');
+                      savedSection?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    View Saved Trips
+                  </Button>
+                )}
               </div>
             )}
           </div>
 
           {/* Saved Adventures Section */}
           {currentFolder && currentFolder.savedAdventures.length > 0 && (
-            <div className="border-t border-green-200 bg-white">
+            <div id="saved-adventures" className="border-t border-green-200 bg-white">
               <div className="p-6">
                 <h3 className="text-xl text-green-800 mb-4 flex items-center gap-2">
                   <FolderOpen className="w-5 h-5" />
