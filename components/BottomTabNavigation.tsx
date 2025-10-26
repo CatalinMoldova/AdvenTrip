@@ -1,15 +1,17 @@
 import { motion } from 'framer-motion';
-import { Home, Compass, UserCircle } from 'lucide-react';
+import { Home, Compass, UserCircle, PlusCircle, MessageCircle } from 'lucide-react';
 
 interface BottomTabNavigationProps {
-  activeTab: 'feed' | 'adventures' | 'profile';
-  onTabChange: (tab: 'feed' | 'adventures' | 'profile') => void;
+  activeTab: 'home' | 'adventures' | 'create' | 'chat' | 'profile';
+  onTabChange: (tab: 'home' | 'adventures' | 'create' | 'chat' | 'profile') => void;
 }
 
 export function BottomTabNavigation({ activeTab, onTabChange }: BottomTabNavigationProps) {
   const tabs = [
-    { id: 'feed' as const, label: 'Feed', icon: Home },
+    { id: 'home' as const, label: 'Home', icon: Home },
     { id: 'adventures' as const, label: 'Adventures', icon: Compass },
+    { id: 'create' as const, label: 'Create', icon: PlusCircle, isSpecial: true },
+    { id: 'chat' as const, label: 'Chat', icon: MessageCircle },
     { id: 'profile' as const, label: 'Profile', icon: UserCircle },
   ];
 
@@ -38,7 +40,7 @@ export function BottomTabNavigation({ activeTab, onTabChange }: BottomTabNavigat
                 
                 <div className="relative">
                   <Icon
-                    className={`w-6 h-6 transition-colors ${
+                    className={`${tab.isSpecial ? 'w-8 h-8' : 'w-6 h-6'} transition-colors ${
                       isActive ? 'text-green-600' : 'text-green-400'
                     }`}
                   />

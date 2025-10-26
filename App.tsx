@@ -1,101 +1,117 @@
-import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { User, AdventureRequest, Adventure } from './types';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useUser, SignIn, UserButton } from '@clerk/clerk-react';
+import { User, TripPost, UserPreferences, AdventureBoard } from './types';
 import { HomePage as LandingPageComponent } from './components/HomePage';
-import { OnboardingScreen } from './components/OnboardingScreen';
-import { FeedTab } from './components/FeedTab';
-import { AdventuresTab } from './components/AdventuresTab';
-import { ProfileTab } from './components/ProfileTab';
 import { BottomTabNavigation } from './components/BottomTabNavigation';
-import { CreateAdventureWizard } from './components/CreateAdventureWizard';
-import { GroupJoinScreen } from './components/GroupJoinScreen';
-import { InviteOnboardingScreen } from './components/InviteOnboardingScreen';
-import { GroupAdventureManagement } from './components/GroupAdventureManagement';
+import { SocialFeedScreen } from './components/SocialFeedScreen';
+import { ChatScreen } from './components/ChatScreen';
+import { CreatePostScreen } from './components/CreatePostScreen';
+import { ShareModal } from './components/ShareModal';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
-import { mockAdventures } from './data/mockData';
+import { mockTripPosts, mockChats } from './data/mockData';
+import { RecommendationService } from './services/recommendationService';
 
-interface SavedTrip {
-  adventure: Adventure;
-  rating: number;
-}
-
-// Context to share user state across routes
-const UserContext = React.createContext<{
+// Context to share app state across routes
+const AppContext = React.createContext<{
   user: User | null;
   setUser: (user: User | null) => void;
-  adventureRequests: AdventureRequest[];
-  setAdventureRequests: React.Dispatch<React.SetStateAction<AdventureRequest[]>>;
-  savedTrips: SavedTrip[];
-  setSavedTrips: React.Dispatch<React.SetStateAction<SavedTrip[]>>;
-  discardedTrips: Adventure[];
-  setDiscardedTrips: React.Dispatch<React.SetStateAction<Adventure[]>>;
-  groupInviteId: string | null;
-  setGroupInviteId: React.Dispatch<React.SetStateAction<string | null>>;
-  selectedGroupAdventure: AdventureRequest | null;
-  setSelectedGroupAdventure: React.Dispatch<React.SetStateAction<AdventureRequest | null>>;
+  userPreferences: UserPreferences;
+  setUserPreferences: React.Dispatch<React.SetStateAction<UserPreferences>>;
+  savedPostIds: Set<string>;
+  setSavedPostIds: React.Dispatch<React.SetStateAction<Set<string>>>;
+  repostedPostIds: Set<string>;
+  setRepostedPostIds: React.Dispatch<React.SetStateAction<Set<string>>>;
+  tripPosts: TripPost[];
+  setTripPosts: React.Dispatch<React.SetStateAction<TripPost[]>>;
+  adventureBoards: AdventureBoard[];
+  setAdventureBoards: React.Dispatch<React.SetStateAction<AdventureBoard[]>>;
 } | null>(null);
 
-export const useUser = () => {
-  const context = React.useContext(UserContext);
-  if (!context) throw new Error('useUser must be used within UserProvider');
+export const useAppContext = () => {
+  const context = React.useContext(AppContext);
+  if (!context) throw new Error('useAppContext must be used within AppProvider');
   return context;
 };
 
 function AppContent() {
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const [user, setUser] = useState<User | null>(null);
-  const [adventureRequests, setAdventureRequests] = useState<AdventureRequest[]>([]);
-  const [savedTrips, setSavedTrips] = useState<SavedTrip[]>([]);
-  const [discardedTrips, setDiscardedTrips] = useState<Adventure[]>([]);
-  const [groupInviteId, setGroupInviteId] = useState<string | null>(null);
-  const [selectedGroupAdventure, setSelectedGroupAdventure] = useState<AdventureRequest | null>(null);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>({
+    tagScores: {},
+    lastUpdated: new Date().toISOString(),
+  });
+  const [savedPostIds, setSavedPostIds] = useState<Set<string>>(new Set());
+  const [repostedPostIds, setRepostedPostIds] = useState<Set<string>>(new Set());
+  const [tripPosts, setTripPosts] = useState<TripPost[]>(mockTripPosts);
+  const [adventureBoards, setAdventureBoards] = useState<AdventureBoard[]>([]);
 
-  const handleCreateAdventureRequest = (request: AdventureRequest) => {
-    setAdventureRequests(prev => [...prev, request]);
-    
-    if (request.mode === 'individual') {
-      // Individual mode - start generating immediately
-      toast.success('Adventure created! 🎉', {
-        description: 'We\'re generating your personalized trip...',
-      });
-    } else {
-      // Group mode - just created
-      toast.info('Invites sent! 👥', {
-        description: 'Waiting for group members to join...',
-      });
+  // Sync Clerk user with app user state
+  useEffect(() => {
+    console.log('Clerk state:', { isSignedIn, hasClerkUser: !!clerkUser });
+    if (isSignedIn && clerkUser) {
+      const appUser: User = {
+        id: clerkUser.id,
+        name: clerkUser.fullName || clerkUser.firstName || 'User',
+        username: clerkUser.username || undefined,
+        email: clerkUser.primaryEmailAddress?.emailAddress,
+        location: '',
+        interests: [],
+        avatar: clerkUser.imageUrl,
+        createdAt: clerkUser.createdAt ? new Date(clerkUser.createdAt).toISOString() : new Date().toISOString(),
+      };
+      console.log('Setting app user:', appUser);
+      setUser(appUser);
+      
+      // Initialize preferences for new users
+      if (userPreferences.tagScores && Object.keys(userPreferences.tagScores).length === 0) {
+        const initialPreferences = RecommendationService.getInitialPreferences([]);
+        setUserPreferences(initialPreferences);
+      }
+    } else if (!isSignedIn) {
+      console.log('User not signed in, clearing user state');
+      setUser(null);
     }
-  };
+  }, [isSignedIn, clerkUser]);
 
-  const handleGroupAdventureClick = (adventureRequest: AdventureRequest) => {
-    setSelectedGroupAdventure(adventureRequest);
-    // Navigate to group management page
-    window.location.href = '/group-management';
-  };
+  // Show loading state while Clerk initializes
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <UserContext.Provider value={{ 
+    <AppContext.Provider value={{
       user, 
       setUser, 
-      adventureRequests, 
-      setAdventureRequests,
-      savedTrips,
-      setSavedTrips,
-      discardedTrips,
-      setDiscardedTrips,
-      groupInviteId,
-      setGroupInviteId,
-      selectedGroupAdventure,
-      setSelectedGroupAdventure
+      userPreferences,
+      setUserPreferences,
+      savedPostIds,
+      setSavedPostIds,
+      repostedPostIds,
+      setRepostedPostIds,
+      tripPosts,
+      setTripPosts,
+      adventureBoards,
+      setAdventureBoards,
     }}>
       <div className="min-h-screen bg-background">
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/get-started" element={<GetStartedPage />} />
-          <Route path="/home" element={user ? <FeedPage /> : <Navigate to="/get-started" />} />
-          <Route path="/adventures" element={user ? <AdventuresPage /> : <Navigate to="/get-started" />} />
-          <Route path="/profile" element={user ? <ProfilePage /> : <Navigate to="/get-started" />} />
-          <Route path="/join/:inviteId" element={<GroupJoinPage />} />
-          <Route path="/group-management" element={user && selectedGroupAdventure ? <GroupManagementPage /> : <Navigate to="/adventures" />} />
+          <Route path="/home" element={isSignedIn && user ? <HomePage /> : <Navigate to="/get-started" />} />
+          <Route path="/adventures" element={isSignedIn && user ? <AdventuresPage /> : <Navigate to="/get-started" />} />
+          <Route path="/create" element={isSignedIn && user ? <CreatePage /> : <Navigate to="/get-started" />} />
+          <Route path="/chat" element={isSignedIn && user ? <ChatPage /> : <Navigate to="/get-started" />} />
+          <Route path="/profile" element={isSignedIn && user ? <ProfilePage /> : <Navigate to="/get-started" />} />
+          <Route path="/profile/:userId" element={isSignedIn && user ? <UserProfilePage /> : <Navigate to="/get-started" />} />
         </Routes>
 
         {/* Toast Notifications */}
@@ -118,13 +134,21 @@ function AppContent() {
           }}
         />
       </div>
-    </UserContext.Provider>
+    </AppContext.Provider>
   );
 }
 
 // Landing Page Component (/)
 function LandingPage() {
+  const { isSignedIn } = useUser();
   const navigate = useNavigate();
+  
+  // If user is already signed in, redirect to home
+  useEffect(() => {
+    if (isSignedIn) {
+      navigate('/home', { replace: true });
+    }
+  }, [isSignedIn, navigate]);
   
   const handleGetStarted = () => {
     navigate('/get-started');
@@ -135,287 +159,399 @@ function LandingPage() {
 
 // Get Started / Onboarding Page (/get-started)
 function GetStartedPage() {
-  const { setUser } = useUser();
+  const { isSignedIn } = useUser();
   const navigate = useNavigate();
 
-  const handleOnboardingComplete = (newUser: User) => {
-    setUser(newUser);
-    navigate('/home');
-  };
+  // If already signed in, redirect to home
+  useEffect(() => {
+    if (isSignedIn) {
+      console.log('User is signed in, redirecting to /home');
+      navigate('/home', { replace: true });
+    }
+  }, [isSignedIn, navigate]);
 
-  return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome to AdvenTrip</h1>
+          <p className="text-gray-600">Sign in to start discovering amazing trips</p>
+        </div>
+        <div className="flex justify-center">
+          <SignIn 
+            routing="hash"
+            signUpUrl="#"
+            appearance={{
+              elements: {
+                rootBox: "w-full",
+                card: "shadow-xl",
+              }
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// Feed Page Component (/home) - Feed with adventure suggestions
-function FeedPage() {
-  const { user, savedTrips, setSavedTrips, discardedTrips, setDiscardedTrips } = useUser();
+// Home Page - Social Feed (/home)
+function HomePage() {
+  const {
+    tripPosts,
+    userPreferences,
+    setUserPreferences,
+    savedPostIds,
+    setSavedPostIds,
+    repostedPostIds,
+    setRepostedPostIds,
+    setTripPosts,
+  } = useAppContext();
   const navigate = useNavigate();
+  const [sharePost, setSharePost] = useState<TripPost | null>(null);
 
-  const handleSaveTrip = (adventure: Adventure, rating: number) => {
-    setSavedTrips(prev => {
-      if (prev.find(item => item.adventure.id === adventure.id)) {
-        return prev;
+  const handleSavePost = (postId: string) => {
+    setSavedPostIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
       }
-      return [...prev, { adventure, rating }];
+      return newSet;
     });
+
+    // Update post stats
+    setTripPosts(prev =>
+      prev.map(post =>
+        post.id === postId
+          ? {
+              ...post,
+              stats: {
+                ...post.stats,
+                saves: savedPostIds.has(postId) ? post.stats.saves - 1 : post.stats.saves + 1,
+              },
+            }
+          : post
+      )
+    );
   };
 
-  const handleDiscardTrip = (adventure: Adventure) => {
-    setDiscardedTrips(prev => [...prev, adventure]);
+  const handleSharePost = (postId: string) => {
+    const post = tripPosts.find(p => p.id === postId);
+    if (post) {
+      setSharePost(post);
+    }
+  };
+
+  const handleRepostPost = (postId: string) => {
+    setRepostedPostIds(prev => new Set([...prev, postId]));
+    
+    // Update post stats
+    setTripPosts(prev =>
+      prev.map(post =>
+        post.id === postId
+          ? { ...post, stats: { ...post.stats, reposts: post.stats.reposts + 1 } }
+          : post
+      )
+    );
   };
 
   return (
     <>
       <div className="relative pb-20">
-        <FeedTab 
-          adventures={mockAdventures}
-          onSaveTrip={handleSaveTrip}
-          onDiscardTrip={handleDiscardTrip}
-          startLocation={user?.location || ''}
+        <SocialFeedScreen
+          posts={tripPosts}
+          userPreferences={userPreferences}
+          onUpdatePreferences={setUserPreferences}
+          onSavePost={handleSavePost}
+          onSharePost={handleSharePost}
+          onRepostPost={handleRepostPost}
+          savedPostIds={savedPostIds}
         />
       </div>
       <BottomTabNavigation
-        activeTab="feed"
+        activeTab="home"
         onTabChange={(tab) => {
           if (tab === 'adventures') navigate('/adventures');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'chat') navigate('/chat');
           if (tab === 'profile') navigate('/profile');
         }}
+      />
+      <ShareModal
+        isOpen={sharePost !== null}
+        onClose={() => setSharePost(null)}
+        post={sharePost}
       />
     </>
   );
 }
 
-// Adventures Page Component (/adventures)
+// Adventures Page - Pinterest-style boards (/adventures)
 function AdventuresPage() {
-  const { user, adventureRequests, setAdventureRequests, savedTrips, setSavedTrips, setSelectedGroupAdventure } = useUser();
-  const [showCreateWizard, setShowCreateWizard] = useState(false);
   const navigate = useNavigate();
-
-  const handleCreateAdventureRequest = (request: AdventureRequest) => {
-    setAdventureRequests(prev => [...prev, request]);
-    
-    if (request.mode === 'individual') {
-      toast.success('Generating your adventure! ✨', {
-        description: 'This may take a moment...',
-      });
-      
-      // Simulate adventure generation
-      setTimeout(() => {
-        // Update request status
-        setAdventureRequests(prev => 
-          prev.map(r => r.id === request.id ? { ...r, status: 'completed' as const } : r)
-        );
-        
-        toast.success('Adventure ready! 🎉', {
-          description: 'Check it out in the Adventures tab!',
-        });
-      }, 2000);
-    } else {
-      // Group mode - just created
-      toast.info('Invites sent! 👥', {
-        description: 'Waiting for group members to join...',
-      });
-    }
-  };
-
-  const handleGroupAdventureClick = (adventureRequest: AdventureRequest) => {
-    setSelectedGroupAdventure(adventureRequest);
-    navigate('/group-management');
-  };
-
-  const handleSaveTrip = (adventure: Adventure, rating: number) => {
-    setSavedTrips(prev => {
-      if (prev.find(item => item.adventure.id === adventure.id)) {
-        return prev;
-      }
-      return [...prev, { adventure, rating }];
-    });
-  };
 
   return (
     <>
       <div className="relative pb-20">
-        <AdventuresTab
-          adventureRequests={adventureRequests}
-          adventures={mockAdventures}
-          onCreateNew={() => setShowCreateWizard(true)}
-          onSaveToFolder={(folderId: string, adventure: Adventure, rating: number) => handleSaveTrip(adventure, rating)}
-          onGroupAdventureClick={handleGroupAdventureClick}
-          user={user!}
-        />
+        <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+          <div className="max-w-lg mx-auto px-4 py-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">My Adventures</h1>
+            <p className="text-gray-600 mb-8">
+              Create adventure boards for your upcoming trips. Coming soon! 🚀
+            </p>
+            
+            {/* Placeholder for now */}
+            <div className="bg-white rounded-2xl p-8 text-center border-2 border-dashed border-gray-300">
+              <p className="text-gray-500">
+                Pinterest-style adventure boards coming soon!
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
       <BottomTabNavigation
         activeTab="adventures"
         onTabChange={(tab) => {
-          if (tab === 'feed') navigate('/home');
+          if (tab === 'home') navigate('/home');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'chat') navigate('/chat');
           if (tab === 'profile') navigate('/profile');
         }}
-      />
-      <CreateAdventureWizard
-        isOpen={showCreateWizard}
-        onClose={() => setShowCreateWizard(false)}
-        onCreateAdventure={handleCreateAdventureRequest}
-        user={user!}
       />
     </>
   );
 }
 
-// Profile Page Component (/profile)
-function ProfilePage() {
-  const { user, setUser, savedTrips, setSavedTrips } = useUser();
+// Create Post Page (/create)
+function CreatePage() {
+  const { user, setTripPosts } = useAppContext();
   const navigate = useNavigate();
 
-  const handleUpdateUser = (updatedUser: User) => {
-    setUser(updatedUser);
+  const handleCreatePost = (postData: Omit<TripPost, 'id' | 'createdAt' | 'stats' | 'author'>) => {
+    const newPost: TripPost = {
+      ...postData,
+      id: `post_${Date.now()}`,
+      author: {
+        id: user!.id,
+        name: user!.name,
+        username: user!.username,
+        avatar: user!.avatar,
+      },
+      createdAt: new Date().toISOString(),
+      stats: {
+        saves: 0,
+        reposts: 0,
+        shares: 0,
+        views: 0,
+      },
+    };
+
+    setTripPosts(prev => [newPost, ...prev]);
+    navigate('/profile');
   };
 
-  const handleRemoveSavedTrip = (adventureId: string) => {
-    setSavedTrips(prev => prev.filter(item => item.adventure.id !== adventureId));
-    toast.success('Trip removed from saved');
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <CreatePostScreen
+      onCreatePost={handleCreatePost}
+      onCancel={handleCancel}
+      currentUserId={user!.id}
+      currentUserName={user!.name}
+      currentUserAvatar={user!.avatar}
+      currentUserUsername={user!.username}
+    />
+  );
+}
+
+// Chat Page (/chat)
+function ChatPage() {
+  const navigate = useNavigate();
+
+  const handleChatClick = (chatId: string) => {
+    toast.info('Full messaging coming soon!');
   };
 
   return (
     <>
       <div className="relative pb-20">
-        <ProfileTab
-          user={user!}
-          onUpdateUser={handleUpdateUser}
-          savedTrips={savedTrips}
-          onRemoveSavedTrip={handleRemoveSavedTrip}
-        />
+        <ChatScreen chats={mockChats} onChatClick={handleChatClick} />
       </div>
       <BottomTabNavigation
-        activeTab="profile"
+        activeTab="chat"
         onTabChange={(tab) => {
-          if (tab === 'feed') navigate('/home');
+          if (tab === 'home') navigate('/home');
           if (tab === 'adventures') navigate('/adventures');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'profile') navigate('/profile');
         }}
       />
     </>
   );
 }
 
-// Group Join Page Component (/join/:inviteId)
-function GroupJoinPage() {
-  const { user, setUser, adventureRequests, setAdventureRequests, setGroupInviteId, setSelectedGroupAdventure } = useUser();
-  const navigate = useNavigate();
-  const { inviteId } = useParams<{ inviteId: string }>();
-
-  const handleInviteOnboardingComplete = (newUser: User, adventureId: string) => {
-    setUser(newUser);
-    
-    const adventureRequest = adventureRequests.find(req => req.id === adventureId);
-    if (adventureRequest) {
-      const updatedRequest = {
-        ...adventureRequest,
-        groupMembers: [
-          ...(adventureRequest.groupMembers || []),
-          {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-            avatar: newUser.avatar,
-            budget: newUser.budget,
-            currency: 'USD',
-            preferences: newUser.interests
-          }
-        ]
-      };
-      
-      setAdventureRequests(prev => 
-        prev.map(req => req.id === adventureId ? updatedRequest : req)
-      );
-      
-      setAdventureRequests(prev => {
-        const exists = prev.find(req => req.id === adventureId);
-        if (!exists) {
-          return [...prev, updatedRequest];
-        }
-        return prev;
-      });
-      
-      setSelectedGroupAdventure(updatedRequest);
-      navigate('/group-management');
-      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`);
-    } else {
-      const newAdventureRequest = {
-        id: adventureId,
-        name: 'Group Adventure',
-        userId: newUser.id,
-        mode: 'group' as const,
-        numberOfDays: 3,
-        activities: [],
-        customActivities: [],
-        transportation: '',
-        groupMembers: [{
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-          avatar: newUser.avatar,
-          budget: newUser.budget,
-          preferences: newUser.interests
-        }],
-        status: 'pending' as const,
-        createdAt: new Date().toISOString(),
-      };
-      
-      setAdventureRequests(prev => [...prev, newAdventureRequest]);
-      setSelectedGroupAdventure(newAdventureRequest);
-      navigate('/group-management');
-      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`);
-    }
-  };
-
-  if (!inviteId) {
-    return <Navigate to="/" />;
-  }
-
-  if (user) {
-    const adventureRequest = adventureRequests.find(req => req.id === inviteId);
-    if (adventureRequest) {
-      setSelectedGroupAdventure(adventureRequest);
-      navigate('/group-management');
-      return null;
-    }
-  }
-
-  return <InviteOnboardingScreen inviteId={inviteId} onComplete={handleInviteOnboardingComplete} />;
-}
-
-// Group Management Page Component (/group-management)
-function GroupManagementPage() {
-  const { user, selectedGroupAdventure, setSelectedGroupAdventure, setAdventureRequests } = useUser();
+// Profile Page - Own profile (/profile)
+function ProfilePage() {
+  const { user, tripPosts, savedPostIds, repostedPostIds } = useAppContext();
   const navigate = useNavigate();
 
-  const handleBackToApp = () => {
-    setSelectedGroupAdventure(null);
-    navigate('/adventures');
-  };
-
-  const handleUpdateAdventure = (updatedAdventure: AdventureRequest) => {
-    setAdventureRequests(prev => 
-      prev.map(req => req.id === updatedAdventure.id ? updatedAdventure : req)
-    );
-    setSelectedGroupAdventure(updatedAdventure);
-  };
-
-  if (!selectedGroupAdventure || !user) {
-    return <Navigate to="/adventures" />;
-  }
+  // Filter posts created by current user
+  const myPosts = tripPosts.filter(post => post.userId === user!.id);
+  
+  // Filter saved posts
+  const savedPosts = tripPosts.filter(post => savedPostIds.has(post.id));
+  
+  // Filter reposted posts
+  const myReposts = tripPosts.filter(post => repostedPostIds.has(post.id) && post.userId !== user!.id);
 
   return (
-    <GroupAdventureManagement 
-      adventureRequest={selectedGroupAdventure}
-      currentUser={user}
-      onBack={() => navigate('/adventures')}
-      onBackToApp={handleBackToApp}
-      onUpdateAdventure={handleUpdateAdventure}
-      onShareLink={(link) => {
-        navigator.clipboard.writeText(link);
-        toast.success('Link copied to clipboard!');
-      }}
-    />
+    <>
+      <div className="relative pb-20">
+        <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+          <div className="max-w-lg mx-auto px-4 py-8">
+            {/* Profile Header */}
+            <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+              <div className="flex items-start gap-4 mb-4">
+                {user!.avatar ? (
+                  <img
+                    src={user!.avatar}
+                    alt={user!.name}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-green-200 flex items-center justify-center">
+                    <span className="text-green-700 text-2xl font-bold">
+                      {user!.name.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold text-gray-900">{user!.name}</h1>
+                  {user!.username && (
+                    <p className="text-gray-600">@{user!.username}</p>
+                  )}
+                  {user!.location && (
+                    <p className="text-sm text-gray-500 mt-1">📍 {user!.location}</p>
+                  )}
+                </div>
+                {/* Settings/Sign Out */}
+                <div className="ml-auto">
+                  <UserButton 
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-10 h-10"
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              
+              {user!.bio && (
+                <p className="text-gray-700 mb-4">{user!.bio}</p>
+              )}
+
+              {/* Stats */}
+              <div className="flex gap-6 text-center border-t border-gray-100 pt-4">
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{myPosts.length}</p>
+                  <p className="text-xs text-gray-600">Posts</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{savedPosts.length}</p>
+                  <p className="text-xs text-gray-600">Saved</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{user!.visitedCountries?.length || 0}</p>
+                  <p className="text-xs text-gray-600">Countries</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+              <div className="flex gap-4 border-b border-gray-200">
+                <button className="pb-2 px-2 font-semibold text-green-600 border-b-2 border-green-600">
+                  My Posts ({myPosts.length})
+                </button>
+                <button className="pb-2 px-2 font-medium text-gray-500">
+                  Saved ({savedPosts.length})
+                </button>
+                <button className="pb-2 px-2 font-medium text-gray-500">
+                  Reposts ({myReposts.length})
+                </button>
+              </div>
+            </div>
+
+            {/* Posts Grid (Placeholder) */}
+            {myPosts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 mb-4">No posts yet</p>
+                <button
+                  onClick={() => navigate('/create')}
+                  className="bg-green-600 text-white px-6 py-2 rounded-full font-medium hover:bg-green-700"
+                >
+                  Create Your First Post
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-1">
+                {myPosts.map(post => (
+                  <div
+                    key={post.id}
+                    className="aspect-square bg-gray-200 rounded-lg overflow-hidden"
+                  >
+                    <img
+                      src={post.images[0]}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <BottomTabNavigation
+        activeTab="profile"
+        onTabChange={(tab) => {
+          if (tab === 'home') navigate('/home');
+          if (tab === 'adventures') navigate('/adventures');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'chat') navigate('/chat');
+        }}
+      />
+    </>
+  );
+}
+
+// User Profile Page - View other users (/profile/:userId)
+function UserProfilePage() {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <div className="relative pb-20">
+        <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+          <div className="max-w-lg mx-auto px-4 py-8">
+            <p className="text-gray-600">User profile view coming soon!</p>
+          </div>
+        </div>
+      </div>
+      <BottomTabNavigation
+        activeTab="profile"
+        onTabChange={(tab) => {
+          if (tab === 'home') navigate('/home');
+          if (tab === 'adventures') navigate('/adventures');
+          if (tab === 'create') navigate('/create');
+          if (tab === 'chat') navigate('/chat');
+        }}
+      />
+    </>
   );
 }
 
