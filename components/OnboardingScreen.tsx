@@ -93,14 +93,20 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
       <div className="w-full max-w-md space-y-8">
         {step === 'location' && (
           <Card className="w-full">
-            <CardHeader className="text-center space-y-4">
-              <div className="w-16 h-16 mx-auto bg-green-500 rounded-2xl flex items-center justify-center">
-                <AdvenTripLogo size="lg" className="text-white" />
+            <CardHeader className="text-center space-y-0">
+              <div className="w-32 h-32 mx-auto flex items-center justify-center">
+                <img 
+                  src="/AdvenTrip Logo transparent.png" 
+                  alt="AdvenTrip Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="space-y-2">
-                <CardTitle className="text-3xl font-black font-display tracking-tight text-green-800">AdvenTrip</CardTitle>
+                <CardTitle className="text-3xl font-black font-display tracking-tight text-green-600 bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+                  AdvenTrip
+                </CardTitle>
                 <p className="text-muted-foreground">
-                  Your journey begins here
+                  Your adventure begins here
                 </p>
               </div>
             </CardHeader>
