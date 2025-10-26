@@ -41,6 +41,7 @@ const seasonOptions = [
 
 export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user }: CreateAdventureWizardProps) {
   const [step, setStep] = useState(0);
+  const [adventureName, setAdventureName] = useState('');
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
@@ -54,10 +55,11 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
   const [mode, setMode] = useState<'individual' | 'group' | null>(null);
   const [inviteLink, setInviteLink] = useState('');
 
-  const totalSteps = 7;
+  const totalSteps = 8;
 
   const handleClose = () => {
     setStep(0);
+    setAdventureName('');
     setName(user?.name || '');
     setLocation(user?.location || '');
     setSelectedLocation(null);
@@ -92,27 +94,31 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
 
   const handleNext = () => {
     // Validation
-    if (step === 0 && !name.trim()) {
+    if (step === 0 && !adventureName.trim()) {
+      toast.error('Please enter an adventure name');
+      return;
+    }
+    if (step === 1 && !name.trim()) {
       toast.error('Please enter your name');
       return;
     }
-    if (step === 1 && (!location.trim() || !isLocationValid)) {
+    if (step === 2 && (!location.trim() || !isLocationValid)) {
       toast.error('Please select a valid location from the suggestions');
       return;
     }
-    if (step === 2 && activities.length === 0) {
+    if (step === 3 && activities.length === 0) {
       toast.error('Please select at least one activity');
       return;
     }
-    if (step === 3 && !season) {
+    if (step === 4 && !season) {
       toast.error('Please select a season');
       return;
     }
-    if (step === 4 && (!duration || parseInt(duration) < 1)) {
+    if (step === 5 && (!duration || parseInt(duration) < 1)) {
       toast.error('Please enter a valid duration');
       return;
     }
-    if (step === 5 && !transport) {
+    if (step === 6 && !transport) {
       toast.error('Please select a means of transport');
       return;
     }
@@ -148,6 +154,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       // Create group adventure request
       const request: AdventureRequest = {
         id: linkId, // Use the same ID as the invite link
+        name: adventureName.trim(),
         userId: user?.id || '1',
         mode: 'group',
         numberOfDays: parseInt(duration),
@@ -155,6 +162,14 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         customActivities: [],
         transportation: transport,
         inviteLink: link,
+        groupMembers: [{
+          id: user?.id || '1',
+          name: name.trim(),
+          email: user?.email || '',
+          avatar: user?.avatar || '',
+          budget: user?.budget || 1000,
+          preferences: activities.map(a => a.replace(/[^\w\s]/g, '').trim())
+        }],
         status: 'pending',
         createdAt: new Date().toISOString(),
       };
@@ -164,6 +179,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
       // Create adventure immediately for individual mode
       const request: AdventureRequest = {
         id: Math.random().toString(36).substring(7),
+        name: adventureName.trim(),
         userId: user?.id || '1',
         mode: 'individual',
         numberOfDays: parseInt(duration),
@@ -202,6 +218,23 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
+              <h2 className="text-2xl text-black mb-2">What's your adventure called?</h2>
+              <p className="text-sm text-black/60">Give your adventure a memorable name</p>
+            </div>
+            <Input
+              value={adventureName}
+              onChange={(e) => setAdventureName(e.target.value)}
+              placeholder="e.g., Summer Road Trip, Beach Getaway"
+              className="text-center text-lg border-0 bg-black/5 rounded-xl px-6 py-4 text-black"
+              autoFocus
+            />
+          </div>
+        );
+
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
               <h2 className="text-2xl text-black mb-2">What's your name?</h2>
               <p className="text-sm text-black/60">Let's personalize your adventure</p>
             </div>
@@ -215,7 +248,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </div>
         );
 
-      case 1:
+      case 2:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -241,7 +274,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </div>
         );
 
-      case 2:
+      case 3:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -271,7 +304,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -313,7 +346,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -353,7 +386,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -388,7 +421,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -538,7 +571,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </AnimatePresence>
         </div>
 
-        {step < 6 && (
+        {step < 7 && (
           <div className="sticky bottom-0 bg-white border-t border-black/10 px-6 py-4">
             <Button
               onClick={handleNext}

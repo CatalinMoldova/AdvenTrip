@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { User, AdventureRequest, Adventure } from './types';
 import { HomePage as LandingPageComponent } from './components/HomePage';
 import { OnboardingScreen } from './components/OnboardingScreen';
@@ -8,6 +8,9 @@ import { AdventuresTab } from './components/AdventuresTab';
 import { ProfileTab } from './components/ProfileTab';
 import { BottomTabNavigation } from './components/BottomTabNavigation';
 import { CreateAdventureWizard } from './components/CreateAdventureWizard';
+import { GroupJoinScreen } from './components/GroupJoinScreen';
+import { InviteOnboardingScreen } from './components/InviteOnboardingScreen';
+import { GroupAdventureManagement } from './components/GroupAdventureManagement';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 import { mockAdventures } from './data/mockData';
@@ -27,6 +30,10 @@ const UserContext = React.createContext<{
   setSavedTrips: React.Dispatch<React.SetStateAction<SavedTrip[]>>;
   discardedTrips: Adventure[];
   setDiscardedTrips: React.Dispatch<React.SetStateAction<Adventure[]>>;
+  groupInviteId: string | null;
+  setGroupInviteId: React.Dispatch<React.SetStateAction<string | null>>;
+  selectedGroupAdventure: AdventureRequest | null;
+  setSelectedGroupAdventure: React.Dispatch<React.SetStateAction<AdventureRequest | null>>;
 } | null>(null);
 
 export const useUser = () => {
@@ -40,6 +47,30 @@ function AppContent() {
   const [adventureRequests, setAdventureRequests] = useState<AdventureRequest[]>([]);
   const [savedTrips, setSavedTrips] = useState<SavedTrip[]>([]);
   const [discardedTrips, setDiscardedTrips] = useState<Adventure[]>([]);
+  const [groupInviteId, setGroupInviteId] = useState<string | null>(null);
+  const [selectedGroupAdventure, setSelectedGroupAdventure] = useState<AdventureRequest | null>(null);
+
+  const handleCreateAdventureRequest = (request: AdventureRequest) => {
+    setAdventureRequests(prev => [...prev, request]);
+    
+    if (request.mode === 'individual') {
+      // Individual mode - start generating immediately
+      toast.success('Adventure created! 🎉', {
+        description: 'We\'re generating your personalized trip...',
+      });
+    } else {
+      // Group mode - just created
+      toast.info('Invites sent! 👥', {
+        description: 'Waiting for group members to join...',
+      });
+    }
+  };
+
+  const handleGroupAdventureClick = (adventureRequest: AdventureRequest) => {
+    setSelectedGroupAdventure(adventureRequest);
+    // Navigate to group management page
+    window.location.href = '/group-management';
+  };
 
   return (
     <UserContext.Provider value={{ 
@@ -50,7 +81,11 @@ function AppContent() {
       savedTrips,
       setSavedTrips,
       discardedTrips,
-      setDiscardedTrips
+      setDiscardedTrips,
+      groupInviteId,
+      setGroupInviteId,
+      selectedGroupAdventure,
+      setSelectedGroupAdventure
     }}>
       <div className="min-h-screen bg-background">
         <Routes>
@@ -59,6 +94,8 @@ function AppContent() {
           <Route path="/home" element={user ? <FeedPage /> : <Navigate to="/get-started" />} />
           <Route path="/adventures" element={user ? <AdventuresPage /> : <Navigate to="/get-started" />} />
           <Route path="/profile" element={user ? <ProfilePage /> : <Navigate to="/get-started" />} />
+          <Route path="/join/:inviteId" element={<GroupJoinPage />} />
+          <Route path="/group-management" element={user && selectedGroupAdventure ? <GroupManagementPage /> : <Navigate to="/adventures" />} />
         </Routes>
 
         {/* Toast Notifications */}
@@ -150,7 +187,7 @@ function FeedPage() {
 
 // Adventures Page Component (/adventures)
 function AdventuresPage() {
-  const { user, adventureRequests, setAdventureRequests, savedTrips, setSavedTrips } = useUser();
+  const { user, adventureRequests, setAdventureRequests, savedTrips, setSavedTrips, setSelectedGroupAdventure } = useUser();
   const [showCreateWizard, setShowCreateWizard] = useState(false);
   const navigate = useNavigate();
 
@@ -179,6 +216,11 @@ function AdventuresPage() {
         description: 'Waiting for group members to join...',
       });
     }
+  };
+
+  const handleGroupAdventureClick = (adventureRequest: AdventureRequest) => {
+    setSelectedGroupAdventure(adventureRequest);
+    navigate('/group-management');
   };
 
   const handleSaveTrip = (adventure: Adventure, rating: number) => {
@@ -250,6 +292,128 @@ function ProfilePage() {
         }}
       />
     </>
+  );
+}
+
+// Group Join Page Component (/join/:inviteId)
+function GroupJoinPage() {
+  const { user, setUser, adventureRequests, setAdventureRequests, setGroupInviteId, setSelectedGroupAdventure } = useUser();
+  const navigate = useNavigate();
+  const { inviteId } = useParams<{ inviteId: string }>();
+
+  const handleInviteOnboardingComplete = (newUser: User, adventureId: string) => {
+    setUser(newUser);
+    
+    const adventureRequest = adventureRequests.find(req => req.id === adventureId);
+    if (adventureRequest) {
+      const updatedRequest = {
+        ...adventureRequest,
+        groupMembers: [
+          ...(adventureRequest.groupMembers || []),
+          {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+            avatar: newUser.avatar,
+            budget: newUser.budget,
+            preferences: newUser.interests
+          }
+        ]
+      };
+      
+      setAdventureRequests(prev => 
+        prev.map(req => req.id === adventureId ? updatedRequest : req)
+      );
+      
+      setAdventureRequests(prev => {
+        const exists = prev.find(req => req.id === adventureId);
+        if (!exists) {
+          return [...prev, updatedRequest];
+        }
+        return prev;
+      });
+      
+      setSelectedGroupAdventure(updatedRequest);
+      navigate('/group-management');
+      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`);
+    } else {
+      const newAdventureRequest = {
+        id: adventureId,
+        name: 'Group Adventure',
+        userId: newUser.id,
+        mode: 'group' as const,
+        numberOfDays: 3,
+        activities: [],
+        customActivities: [],
+        transportation: '',
+        groupMembers: [{
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          avatar: newUser.avatar,
+          budget: newUser.budget,
+          preferences: newUser.interests
+        }],
+        status: 'pending' as const,
+        createdAt: new Date().toISOString(),
+      };
+      
+      setAdventureRequests(prev => [...prev, newAdventureRequest]);
+      setSelectedGroupAdventure(newAdventureRequest);
+      navigate('/group-management');
+      toast.success(`Welcome to the adventure, ${newUser.name}! 🎉`);
+    }
+  };
+
+  if (!inviteId) {
+    return <Navigate to="/" />;
+  }
+
+  if (user) {
+    const adventureRequest = adventureRequests.find(req => req.id === inviteId);
+    if (adventureRequest) {
+      setSelectedGroupAdventure(adventureRequest);
+      navigate('/group-management');
+      return null;
+    }
+  }
+
+  return <InviteOnboardingScreen inviteId={inviteId} onComplete={handleInviteOnboardingComplete} />;
+}
+
+// Group Management Page Component (/group-management)
+function GroupManagementPage() {
+  const { user, selectedGroupAdventure, setSelectedGroupAdventure, setAdventureRequests } = useUser();
+  const navigate = useNavigate();
+
+  const handleBackToApp = () => {
+    setSelectedGroupAdventure(null);
+    navigate('/adventures');
+  };
+
+  const handleUpdateAdventure = (updatedAdventure: AdventureRequest) => {
+    setAdventureRequests(prev => 
+      prev.map(req => req.id === updatedAdventure.id ? updatedAdventure : req)
+    );
+    setSelectedGroupAdventure(updatedAdventure);
+  };
+
+  if (!selectedGroupAdventure || !user) {
+    return <Navigate to="/adventures" />;
+  }
+
+  return (
+    <GroupAdventureManagement 
+      adventureRequest={selectedGroupAdventure}
+      currentUser={user}
+      onBack={() => navigate('/adventures')}
+      onBackToApp={handleBackToApp}
+      onUpdateAdventure={handleUpdateAdventure}
+      onShareLink={(link) => {
+        navigator.clipboard.writeText(link);
+        toast.success('Link copied to clipboard!');
+      }}
+    />
   );
 }
 
