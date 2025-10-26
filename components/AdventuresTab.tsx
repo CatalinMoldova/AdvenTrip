@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Plus, FolderOpen, Users, User as UserIcon, ChevronRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SwipeableAdventureCard } from './SwipeableAdventureCard';
+import { AdventureDetailView } from './AdventureDetailView';
 import { toast } from 'sonner';
 
 interface AdventuresTabProps {
@@ -48,6 +49,7 @@ export function AdventuresTab({
 
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [currentFeedIndex, setCurrentFeedIndex] = useState(0);
+  const [selectedAdventure, setSelectedAdventure] = useState<Adventure | null>(null);
 
   const handleSwipeInFolder = (
     folderId: string, 
@@ -317,6 +319,7 @@ export function AdventuresTab({
                   {currentFolder.savedAdventures.map((saved) => (
                     <div
                       key={saved.adventure.id}
+                      onClick={() => setSelectedAdventure(saved.adventure)}
                       className="bg-green-50 border border-green-200 rounded-xl p-4 hover:border-green-300 transition-all cursor-pointer"
                     >
                       <div className="flex items-start gap-4">
@@ -356,6 +359,18 @@ export function AdventuresTab({
           )}
         </div>
       </div>
+
+      {/* Adventure Detail Modal */}
+      {selectedAdventure && (
+        <AdventureDetailView
+          adventure={selectedAdventure}
+          onClose={() => setSelectedAdventure(null)}
+          onSave={() => {
+            setSelectedAdventure(null);
+            toast.success('Adventure updated!');
+          }}
+        />
+      )}
     </div>
   );
 }
