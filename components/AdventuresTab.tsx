@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AdventureRequest, Adventure, User } from '../types';
 import { Button } from './ui/button';
-import { Plus, FolderOpen, Users, User as UserIcon, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Plus, FolderOpen, Users, User as UserIcon, ChevronRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SwipeableAdventureCard } from './SwipeableAdventureCard';
 import { toast } from 'sonner';
@@ -35,9 +35,9 @@ export function AdventuresTab({
   const [folders, setFolders] = useState<AdventureFolder[]>(
     adventureRequests.map(req => ({
       id: req.id,
-      name: req.groupMembers && req.groupMembers.length > 0 
+      name: req.name || (req.groupMembers && req.groupMembers.length > 0 
         ? `Trip with ${req.groupMembers.map(m => m.name).join(', ')}`
-        : `${req.activities[0] || 'Adventure'} Trip`,
+        : `${req.activities[0] || 'Adventure'} Trip`),
       mode: req.mode,
       members: req.groupMembers,
       savedAdventures: [],
@@ -77,7 +77,7 @@ export function AdventuresTab({
 
     if (isLike) {
       onSaveToFolder?.(folderId, adventure, rating);
-      toast.success('Added to folder! 📁');
+      toast.success('Saved to your profile!');
     } else {
       toast.info('Passed');
     }
@@ -262,32 +262,14 @@ export function AdventuresTab({
         </div>
       </div>
 
-      {/* Feed */}
-      <div className="flex-1 relative">
-        {visibleAdventures.length === 0 ? (
-          <div className="h-full flex items-center justify-center p-6">
-            <div className="text-center max-w-md">
-              <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                <FolderOpen className="w-10 h-10 text-green-400" />
-              </div>
-              <h3 className="text-xl text-green-800 mb-2">All done!</h3>
-              <p className="text-green-600 mb-6">
-                You've reviewed all adventures for this folder. 
-                {currentFolder?.mode === 'group' && ' Share with your group to see their picks!'}
-              </p>
-              <Button
-                onClick={() => setSelectedFolder(null)}
-                className="bg-green-500 hover:bg-green-600 text-white rounded-xl"
-              >
-                Back to Folders
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="h-full flex items-center justify-center p-6">
-            <div className="relative w-full max-w-lg" style={{ height: '75vh' }}>
-              <AnimatePresence>
-                {visibleAdventures.length > 0 && currentFeedIndex < visibleAdventures.length && (
+      {/* Feed with Saved Adventures */}
+      <div className="flex-1 relative overflow-y-auto">
+        <div className="min-h-full flex flex-col">
+          {/* Card Feed Section */}
+          <div className="flex-1 flex items-center justify-center p-6">
+            {currentFeedIndex < visibleAdventures.length ? (
+              <div className="relative w-full max-w-lg" style={{ height: '75vh' }}>
+                <AnimatePresence>
                   <SwipeableAdventureCard
                     key={visibleAdventures[currentFeedIndex].id}
                     adventure={visibleAdventures[currentFeedIndex]}
@@ -302,30 +284,77 @@ export function AdventuresTab({
                     }
                     startLocation={user?.location}
                   />
-                )}
-              </AnimatePresence>
-            </div>
+                </AnimatePresence>
 
-            {/* Counter */}
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm">
-              {currentFeedIndex + 1} / {visibleAdventures.length}
-            </div>
+                {/* Counter */}
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm z-30">
+                  {currentFeedIndex + 1} / {visibleAdventures.length}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center max-w-md py-12">
+                <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-10 h-10 text-green-400" />
+                </div>
+                <h3 className="text-xl text-green-800 mb-2">All cards reviewed!</h3>
+                <p className="text-green-600">
+                  Scroll down to see your saved adventures
+                </p>
+              </div>
+            )}
+          </div>
 
-            {/* Group Mode: Show what friends liked */}
-            {currentFolder?.mode === 'group' && currentFolder.savedAdventures.length > 0 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-green-50 border border-green-200 rounded-xl p-3 shadow-lg max-w-xs">
-                <div className="text-xs text-green-600 mb-1">Group Favorites</div>
-                <div className="flex items-center gap-2">
-                  {currentFolder.savedAdventures.slice(0, 3).map((saved, idx) => (
-                    <div key={idx} className="text-xs text-green-800">
-                      {saved.adventure.title.split(' ')[0]}
+          {/* Saved Adventures Section */}
+          {currentFolder && currentFolder.savedAdventures.length > 0 && (
+            <div className="border-t border-green-200 bg-white">
+              <div className="p-6">
+                <h3 className="text-xl text-green-800 mb-4 flex items-center gap-2">
+                  <FolderOpen className="w-5 h-5" />
+                  Saved Adventures ({currentFolder.savedAdventures.length})
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentFolder.savedAdventures.map((saved) => (
+                    <div
+                      key={saved.adventure.id}
+                      className="bg-green-50 border border-green-200 rounded-xl p-4 hover:border-green-300 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="w-20 h-20 bg-green-100 rounded-lg flex-shrink-0 overflow-hidden">
+                          <img 
+                            src={saved.adventure.images[0]} 
+                            alt={saved.adventure.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://via.placeholder.com/150';
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-green-800 font-medium mb-1 line-clamp-1">
+                            {saved.adventure.title}
+                          </h4>
+                          <p className="text-sm text-green-600 mb-2 line-clamp-2">
+                            {saved.adventure.destination}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-green-600">
+                            <span>{saved.adventure.duration}</span>
+                            <span>${saved.adventure.price}</span>
+                          </div>
+                          {saved.rating && (
+                            <div className="mt-2 text-xs text-green-700">
+                              Rating: {saved.rating}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

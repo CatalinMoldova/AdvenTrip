@@ -32,6 +32,7 @@ export interface Group {
 
 export interface AdventureRequest {
   id: string;
+  name: string;
   userId: string;
   mode: 'individual' | 'group';
   numberOfDays: number;

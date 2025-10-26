@@ -89,7 +89,8 @@ export function SwipeableAdventureCard({
     
     // Card was swiped past threshold
     if (offset > 0) {
-      setTimeout(() => onSwipeRight(adventure, rating), 600);
+      const clampedRating = Math.max(0, Math.min(100, rating));
+      setTimeout(() => onSwipeRight(adventure, clampedRating), 600);
     } else {
       setTimeout(() => onSwipeLeft(adventure), 600);
     }
@@ -111,7 +112,8 @@ export function SwipeableAdventureCard({
     // Only trigger decision if outside neutral zone (45-55%)
     if (rating < 45 || rating > 55) {
       const isLike = rating > 50;
-      setTimeout(() => onSliderDecision(adventure, rating, isLike), 600);
+      const clampedRating = Math.max(0, Math.min(100, rating));
+      setTimeout(() => onSliderDecision(adventure, clampedRating, isLike), 600);
     }
     // If in neutral zone (45-55%), do nothing - card stays
   };
@@ -540,14 +542,20 @@ export function SwipeableAdventureCard({
 
       {/* Swipe indicators */}
       <motion.div
-        className="absolute -left-6 top-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-3 rounded-full text-xl font-bold rotate-12"
-        style={{ opacity: useTransform(x, [-150, 0], [1, 0]) }}
+        className="absolute -left-6 top-1/2 -translate-y-1/2 bg-red-500 text-white px-6 py-3 rounded-full text-xl font-bold"
+        style={{ 
+          opacity: useTransform(x, [-150, 0], [1, 0]),
+          rotate: useTransform(x, [-150, 0], [12, -12])
+        }}
       >
         NOPE
       </motion.div>
       <motion.div
-        className="absolute -right-6 top-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-3 rounded-full text-xl font-bold -rotate-12"
-        style={{ opacity: useTransform(x, [0, 150], [0, 1]) }}
+        className="absolute -right-6 top-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-3 rounded-full text-xl font-bold"
+        style={{ 
+          opacity: useTransform(x, [0, 150], [0, 1]),
+          rotate: useTransform(x, [0, 150], [-12, 12])
+        }}
       >
         LIKE
       </motion.div>
@@ -556,8 +564,12 @@ export function SwipeableAdventureCard({
       {!isFlipped && (
         <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg z-20">
           <div className="flex items-center justify-between mb-2 text-sm text-green-800/70">
-            <span>Not interested</span>
-            <span>Love it!</span>
+            <motion.span className={rating < 50 ? 'font-bold text-red-500' : ''}>
+              {rating < 50 ? `${Math.max(0, Math.min(49, rating))}%` : 'Not interested'}
+            </motion.span>
+            <motion.span className={rating > 50 ? 'font-bold text-green-600' : ''}>
+              {rating > 50 ? `${Math.max(51, Math.min(100, rating))}%` : 'Love it!'}
+            </motion.span>
           </div>
           <Slider
             value={[rating]}
