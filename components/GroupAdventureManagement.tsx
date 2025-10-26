@@ -14,12 +14,13 @@ import {
   User,
   Heart,
   Star,
-  Globe
+  Globe,
+  Edit
 } from 'lucide-react';
-// import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AdventureRequest, GroupMember } from '../types';
 import { toast } from 'sonner';
-import { MemberProfileEditSimple } from './MemberProfileEditSimple';
+import { MemberProfileEdit } from './MemberProfileEdit';
 
 interface GroupAdventureManagementProps {
   adventureRequest: AdventureRequest;
@@ -38,7 +39,6 @@ export function GroupAdventureManagement({
   onBackToApp,
   onUpdateAdventure 
 }: GroupAdventureManagementProps) {
-  console.log('GroupAdventureManagement rendered with:', { adventureRequest, currentUser });
   const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null);
   const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
   const [localAdventureRequest, setLocalAdventureRequest] = useState<AdventureRequest>(adventureRequest);
@@ -59,14 +59,15 @@ export function GroupAdventureManagement({
       .slice(0, 5)
       .map(([pref]) => pref);
     
-    // Minimum duration (if members have duration preferences)
-    const durations = members.map(m => m.budget).filter(Boolean);
-    const minBudget = durations.length > 0 ? Math.min(...durations) : undefined;
+    // Minimum budget
+    const budgets = members.map(m => m.budget).filter(Boolean);
+    const minBudget = budgets.length > 0 ? Math.min(...budgets) : undefined;
     
     // Transportation preferences
-    const transportations = members.map(m => m.preferences?.find(p => 
-      ['car', 'plane', 'train', 'bus', 'bike'].includes(p.toLowerCase())
-    )).filter(Boolean);
+    const transportOptions = ['car', 'plane', 'train', 'bus', 'bike'];
+    const transportations = members.map(m => 
+      m.preferences?.find(p => transportOptions.includes(p.toLowerCase()))
+    ).filter(Boolean);
     
     return {
       commonInterests,
@@ -238,24 +239,14 @@ export function GroupAdventureManagement({
     );
   }
 
-  // Simple fallback if there are any issues
-  if (!adventureRequest) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Loading...</h1>
-          <Button onClick={onBack} variant="outline">
-            Go Back
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -314,15 +305,15 @@ export function GroupAdventureManagement({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Duration</p>
-                  <p className="font-semibold">{localAdventureRequest.numberOfDays} days</p>
+                  <p className="font-semibold">{adventureRequest.numberOfDays} days</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Activities</p>
-                  <p className="font-semibold">{localAdventureRequest.activities.length} selected</p>
+                  <p className="font-semibold">{adventureRequest.activities.length} selected</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Created</p>
-                  <p className="font-semibold">{formatDate(localAdventureRequest.createdAt)}</p>
+                  <p className="font-semibold">{formatDate(adventureRequest.createdAt)}</p>
                 </div>
               </div>
             </CardContent>
@@ -343,7 +334,7 @@ export function GroupAdventureManagement({
                   <div className="space-y-4">
                     {/* Common Interests */}
                     <div>
-                      <p className="text-sm text-gray-500 mb-2">Group Interests</p>
+                      <p className="text-sm text-gray-500 mb-2">Group Interests & Preferences</p>
                       <div className="flex flex-wrap gap-2">
                         {summary.commonInterests.length > 0 ? (
                           summary.commonInterests.map((interest) => (
@@ -403,51 +394,38 @@ export function GroupAdventureManagement({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Card className="hover:shadow-lg transition-shadow">
+                      <Card 
+                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => setSelectedMember(member)}
+                      >
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div 
-                              className="flex items-center gap-3 flex-1 cursor-pointer"
-                              onClick={() => setSelectedMember(member)}
-                            >
-                              <Avatar className="w-12 h-12">
-                                <AvatarImage src={member.avatar} />
-                                <AvatarFallback>
-                                  {getInitials(member.name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gray-900 truncate">
-                                  {member.name}
-                                </h3>
-                                <p className="text-sm text-gray-500">
-                                  Budget: ${member.budget?.toLocaleString() || 'Not specified'}
-                                </p>
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {member.preferences?.slice(0, 2).map((pref) => (
-                                    <Badge key={pref} variant="outline" className="text-xs">
-                                      {pref}
-                                    </Badge>
-                                  ))}
-                                  {member.preferences && member.preferences.length > 2 && (
-                                    <Badge variant="outline" className="text-xs">
-                                      +{member.preferences.length - 2} more
-                                    </Badge>
-                                  )}
-                                </div>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={member.avatar} />
+                              <AvatarFallback>
+                                {getInitials(member.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 truncate">
+                                {member.name}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                Budget: ${member.budget?.toLocaleString() || 'Not set'}
+                              </p>
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {member.preferences?.slice(0, 2).map((pref) => (
+                                  <Badge key={pref} variant="outline" className="text-xs">
+                                    {pref}
+                                  </Badge>
+                                ))}
+                                {member.preferences && member.preferences.length > 2 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{member.preferences.length - 2} more
+                                  </Badge>
+                                )}
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingMember(member);
-                              }}
-                              className="p-2"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -488,18 +466,8 @@ export function GroupAdventureManagement({
               </div>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       </div>
-
-      {/* Member Profile Edit Dialog */}
-      {editingMember && (
-        <MemberProfileEditSimple
-          member={editingMember}
-          isOpen={!!editingMember}
-          onClose={() => setEditingMember(null)}
-          onSave={handleMemberUpdate}
-        />
-      )}
     </div>
   );
 }

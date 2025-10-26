@@ -163,7 +163,7 @@ export default function App() {
             name: newUser.name,
             email: newUser.email,
             avatar: newUser.avatar,
-            budget: undefined,
+            budget: newUser.budget,
             preferences: newUser.interests
           }
         ]
@@ -207,7 +207,7 @@ export default function App() {
           name: newUser.name,
           email: newUser.email,
           avatar: newUser.avatar,
-          budget: undefined,
+          budget: newUser.budget,
           preferences: newUser.interests
         }],
         status: 'pending' as const,
@@ -283,12 +283,6 @@ export default function App() {
           currentUser={user}
           onBack={handleGroupManagementBack}
           onBackToApp={handleBackToApp}
-          onUpdateAdventure={(updatedAdventure) => {
-            setAdventureRequests(prev => 
-              prev.map(req => req.id === updatedAdventure.id ? updatedAdventure : req)
-            );
-            setSelectedGroupAdventure(updatedAdventure);
-          }}
           onShareLink={(link) => {
             navigator.clipboard.writeText(link);
             toast.success('Link copied to clipboard!');

@@ -8,13 +8,14 @@ import {
   User, 
   DollarSign, 
   Heart, 
-  Save, 
   X as XIcon, 
   Plus,
-  Edit
+  Save,
+  X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { GroupMember } from '../types';
+import { toast } from 'sonner';
 
 interface MemberProfileEditProps {
   member: GroupMember;
@@ -23,7 +24,7 @@ interface MemberProfileEditProps {
   onSave: (updatedMember: GroupMember) => void;
 }
 
-const availablePreferences = [
+const availableActivities = [
   'Hiking', 'Beach', 'Museums', 'Food Tours', 'Nightlife',
   'Shopping', 'Photography', 'Adventure Sports', 'Wildlife',
   'Cultural Sites', 'Water Sports', 'Mountains', 'Spa & Wellness',
@@ -32,9 +33,27 @@ const availablePreferences = [
 ];
 
 export function MemberProfileEdit({ member, isOpen, onClose, onSave }: MemberProfileEditProps) {
-  const [budget, setBudget] = useState<string>(member.budget?.toString() || '');
+  const [name, setName] = useState(member.name);
+  const [budget, setBudget] = useState(member.budget?.toString() || '');
   const [preferences, setPreferences] = useState<string[]>(member.preferences || []);
   const [customPreference, setCustomPreference] = useState('');
+
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast.error('Please enter your name');
+      return;
+    }
+
+    const updatedMember: GroupMember = {
+      ...member,
+      name: name.trim(),
+      budget: budget ? parseInt(budget) : undefined,
+      preferences: preferences
+    };
+
+    onSave(updatedMember);
+    onClose();
+  };
 
   const togglePreference = (preference: string) => {
     setPreferences(prev =>
@@ -55,168 +74,147 @@ export function MemberProfileEdit({ member, isOpen, onClose, onSave }: MemberPro
     setPreferences(prev => prev.filter(p => p !== preference));
   };
 
-  const handleSave = () => {
-    const updatedMember: GroupMember = {
-      ...member,
-      budget: budget ? parseInt(budget) : undefined,
-      preferences: preferences
-    };
-    onSave(updatedMember);
-    onClose();
-  };
-
-  const handleClose = () => {
-    // Reset to original values
-    setBudget(member.budget?.toString() || '');
-    setPreferences(member.preferences || []);
-    setCustomPreference('');
-    onClose();
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Edit className="w-5 h-5" />
-            Edit Profile - {member.name}
+            <User className="w-5 h-5" />
+            Edit Profile
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Budget Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <DollarSign className="w-5 h-5" />
-                Budget
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Your budget for this adventure (USD)
-                </label>
+          {/* Name */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Name
+            </label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+            />
+          </div>
+
+          {/* Budget */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Budget (USD)
+            </label>
+            <Input
+              type="number"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              placeholder="Enter your budget (optional)"
+              min="0"
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave empty if you don't want to specify a budget
+            </p>
+          </div>
+
+          {/* Preferences */}
+          <div className="space-y-4">
+            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Heart className="w-4 h-4" />
+              Interests & Preferences
+            </label>
+            
+            {/* Available Activities */}
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Select from common activities:</p>
+              <div className="flex flex-wrap gap-2">
+                {availableActivities.map((activity) => {
+                  const isSelected = preferences.includes(activity);
+                  return (
+                    <motion.button
+                      key={activity}
+                      onClick={() => togglePreference(activity)}
+                      className={`px-3 py-2 rounded-full text-sm transition-all border ${
+                        isSelected
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background text-foreground border-border hover:border-primary'
+                      }`}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {activity}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Custom Preference */}
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">
+                Add custom preference:
+              </label>
+              <div className="flex gap-2">
                 <Input
-                  type="number"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                  placeholder="Enter your budget (optional)"
-                  className="w-full"
+                  value={customPreference}
+                  onChange={(e) => setCustomPreference(e.target.value)}
+                  placeholder="Enter custom preference"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCustomPreference();
+                    }
+                  }}
                 />
-                <p className="text-xs text-gray-500">
-                  Leave empty if you prefer not to specify
-                </p>
+                <Button
+                  type="button"
+                  onClick={addCustomPreference}
+                  disabled={!customPreference.trim()}
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Preferences Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Heart className="w-5 h-5" />
-                Interests & Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* Selected Preferences */}
+            {preferences.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Select your interests
-                </label>
+                <p className="text-sm text-muted-foreground">Your preferences:</p>
                 <div className="flex flex-wrap gap-2">
-                  {availablePreferences.map((preference) => {
-                    const isSelected = preferences.includes(preference);
-                    return (
-                      <motion.button
-                        key={preference}
-                        onClick={() => togglePreference(preference)}
-                        className={`px-3 py-2 rounded-full text-sm transition-all border ${
-                          isSelected
-                            ? 'bg-blue-500 text-white border-blue-500'
-                            : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500'
-                        }`}
-                        whileTap={{ scale: 0.95 }}
+                  {preferences.map((preference) => (
+                    <Badge
+                      key={preference}
+                      variant="secondary"
+                      className="flex items-center gap-1 px-3 py-1"
+                    >
+                      {preference}
+                      <button
+                        onClick={() => removePreference(preference)}
+                        className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5"
                       >
-                        {preference}
-                      </motion.button>
-                    );
-                  })}
+                        <XIcon className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
                 </div>
               </div>
-
-              {/* Custom Preferences */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Add custom preference
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    value={customPreference}
-                    onChange={(e) => setCustomPreference(e.target.value)}
-                    placeholder="Enter custom preference"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addCustomPreference();
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    onClick={addCustomPreference}
-                    disabled={!customPreference.trim()}
-                    size="sm"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Selected Preferences */}
-              {preferences.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Selected preferences
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {preferences.map((preference) => (
-                      <Badge
-                        key={preference}
-                        variant="secondary"
-                        className="flex items-center gap-1 px-3 py-1"
-                      >
-                        {preference}
-                        <button
-                          onClick={() => removePreference(preference)}
-                          className="ml-1 hover:bg-red-500 hover:text-white rounded-full p-0.5 transition-colors"
-                        >
-                          <XIcon className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 justify-end">
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              className="flex items-center gap-2"
-            >
-              <XIcon className="w-4 h-4" />
-              Cancel
-            </Button>
+          <div className="flex gap-3 pt-4">
             <Button
               onClick={handleSave}
-              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
+              className="flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               Save Changes
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Cancel
             </Button>
           </div>
         </div>
