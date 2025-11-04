@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
@@ -8,7 +8,9 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { ArrowLeft, Copy, Share2, Settings, Save, Calendar as CalendarIcon, DollarSign, Check, Plus, X, Users, Heart } from 'lucide-react';
+import { Slider } from './ui/slider';
+import { LocationAutocomplete } from './LocationAutocomplete';
+import { ArrowLeft, Copy, Share2, Settings, Save, Calendar as CalendarIcon, DollarSign, Check, Plus, X, Users, Heart, MapPin, Shuffle } from 'lucide-react';
 import { AdventureRequest, Adventure, GroupMember } from '../types';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -46,6 +48,44 @@ const currencyOptions = [
   { value: 'CNY', label: 'CNY (¥)' },
 ];
 
+const seasonOptions = [
+  { id: 'spring', label: 'Spring', icon: '🌸', months: 'Mar-May' },
+  { id: 'summer', label: 'Summer', icon: '☀️', months: 'Jun-Aug' },
+  { id: 'fall', label: 'Fall', icon: '🍂', months: 'Sep-Nov' },
+  { id: 'winter', label: 'Winter', icon: '❄️', months: 'Dec-Feb' },
+  { id: 'anytime', label: 'Anytime', icon: '🌍', months: 'Flexible' },
+];
+
+// Function to detect season(s) from dates
+const detectSeasonsFromDates = (startDate: Date, endDate: Date): string[] => {
+  const seasons: string[] = [];
+  const startMonth = startDate.getMonth(); // 0-11
+  const endMonth = endDate.getMonth();
+  
+  // Helper to get season from month
+  const getSeasonFromMonth = (month: number): string => {
+    if (month >= 2 && month <= 4) return 'spring'; // Mar, Apr, May
+    if (month >= 5 && month <= 7) return 'summer'; // Jun, Jul, Aug
+    if (month >= 8 && month <= 10) return 'fall'; // Sep, Oct, Nov
+    return 'winter'; // Dec, Jan, Feb
+  };
+  
+  const startSeason = getSeasonFromMonth(startMonth);
+  const endSeason = getSeasonFromMonth(endMonth);
+  
+  seasons.push(startSeason);
+  if (startSeason !== endSeason && !seasons.includes(endSeason)) {
+    seasons.push(endSeason);
+  }
+  
+  // Check if trip spans across year boundary (e.g., Dec to Feb)
+  if (startMonth === 11 && endMonth <= 1) { // Dec to Jan/Feb
+    if (!seasons.includes('winter')) seasons.push('winter');
+  }
+  
+  return [...new Set(seasons)]; // Remove duplicates
+};
+
 export function AdventureSettings({ adventureRequest, onBack, onSave }: AdventureSettingsProps) {
   const [adventureName, setAdventureName] = useState(adventureRequest.name);
   const [numberOfDays, setNumberOfDays] = useState(adventureRequest.numberOfDays.toString());
@@ -61,6 +101,10 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
           : [adventureRequest.transportation])
       : []
   );
+  // Focus location management
+  const [focusLocationState, setFocusLocationState] = useState(adventureRequest.focusLocation || '');
+  const [isFocusLocationRandom, setIsFocusLocationRandom] = useState(!!adventureRequest.focusLocationRadius);
+  const [focusLocationRadiusState, setFocusLocationRadiusState] = useState<number | undefined>(adventureRequest.focusLocationRadius);
   const [startDate, setStartDate] = useState<Date | undefined>(
     adventureRequest.startDate ? new Date(adventureRequest.startDate) : undefined
   );
@@ -72,6 +116,29 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
   const [endDatePopoverOpen, setEndDatePopoverOpen] = useState(false);
   const [showAddPreferencesDialog, setShowAddPreferencesDialog] = useState(false);
   const [customPreference, setCustomPreference] = useState('');
+  // Season management
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>(
+    adventureRequest.season 
+      ? (adventureRequest.season.includes(',') 
+          ? adventureRequest.season.split(',').filter(Boolean)
+          : [adventureRequest.season])
+      : []
+  );
+  const [isSeasonManuallySet, setIsSeasonManuallySet] = useState(!!adventureRequest.season);
+  const [showSeasonEditDialog, setShowSeasonEditDialog] = useState(false);
+
+  // Initialize seasons from dates if they exist and no season was manually set
+  useEffect(() => {
+    if (startDate && endDate && !isSeasonManuallySet) {
+      if (selectedSeasons.length === 0) {
+        // No seasons set yet, auto-detect
+        const detectedSeasons = detectSeasonsFromDates(startDate, endDate);
+        if (detectedSeasons.length > 0) {
+          setSelectedSeasons(detectedSeasons);
+        }
+      }
+    }
+  }, []); // Only run on mount
 
   const getInitials = (name: string) => {
     return name
@@ -123,6 +190,23 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
       prev.includes(tripTypeId)
         ? prev.filter(t => t !== tripTypeId)
         : [...prev, tripTypeId]
+    );
+  };
+
+  // Auto-detect seasons from dates
+  const updateSeasonsFromDates = (start: Date | undefined, end: Date | undefined) => {
+    if (start && end && !isSeasonManuallySet) {
+      const detectedSeasons = detectSeasonsFromDates(start, end);
+      setSelectedSeasons(detectedSeasons);
+    }
+  };
+
+  const toggleSeason = (seasonId: string) => {
+    setIsSeasonManuallySet(true);
+    setSelectedSeasons(prev =>
+      prev.includes(seasonId)
+        ? prev.filter(s => s !== seasonId)
+        : [...prev, seasonId]
     );
   };
 
@@ -199,6 +283,9 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
       transportation: selectedTripTypes.join(','),
       startDate: startDate?.toISOString(),
       endDate: endDate?.toISOString(),
+      season: selectedSeasons.length > 0 ? selectedSeasons.join(',') : undefined,
+      focusLocation: focusLocationState.trim() || undefined,
+      focusLocationRadius: isFocusLocationRandom ? focusLocationRadiusState : undefined,
     };
 
     onSave?.(updatedRequest);
@@ -311,6 +398,40 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
                       placeholder="Enter number of days"
                       className="border-green-200 bg-green-50 text-green-800"
                     />
+                    {(selectedSeasons.length > 0 || adventureRequest.season) && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-sm text-green-600 font-medium">Season:</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {selectedSeasons.map((seasonId) => {
+                            const seasonOption = seasonOptions.find(s => s.id === seasonId);
+                            return seasonOption ? (
+                              <span key={seasonId} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 text-green-700 border border-green-200">
+                                <span>{seasonOption.icon}</span>
+                                <span>{seasonOption.label}</span>
+                              </span>
+                            ) : null;
+                          })}
+                          <button
+                            onClick={() => setShowSeasonEditDialog(true)}
+                            className="text-xs text-green-600 hover:text-green-700 underline ml-1"
+                            type="button"
+                          >
+                            Edit Seasonality
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {selectedSeasons.length === 0 && !adventureRequest.season && (
+                      <div className="mt-3">
+                        <button
+                          onClick={() => setShowSeasonEditDialog(true)}
+                          className="text-xs text-green-600 hover:text-green-700 underline"
+                          type="button"
+                        >
+                          + Add Seasonality
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -321,16 +442,15 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
                         </Label>
                         <Popover open={startDatePopoverOpen} onOpenChange={setStartDatePopoverOpen}>
                           <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal border-green-200 bg-green-50 text-green-800 hover:bg-green-100"
+                            <button
                               type="button"
+                              className="w-full flex items-center justify-start text-left font-normal border border-green-200 bg-green-50 text-green-800 hover:bg-green-100 rounded-md px-3 py-2 text-sm transition-colors"
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {startDate ? format(startDate, 'PPP') : 'Select start date'}
-                            </Button>
+                            </button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 z-[100]" align="start" side="bottom">
+                          <PopoverContent className="w-auto p-0 z-[100] border-green-200 bg-white shadow-lg rounded-xl" align="start" side="bottom">
                             <Calendar
                               mode="single"
                               selected={startDate}
@@ -348,7 +468,7 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
                                 today.setHours(0, 0, 0, 0);
                                 return date < today;
                               }}
-                              initialFocus
+                              className="rounded-xl"
                             />
                           </PopoverContent>
                         </Popover>
@@ -359,17 +479,16 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
                         </Label>
                         <Popover open={endDatePopoverOpen} onOpenChange={setEndDatePopoverOpen}>
                           <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal border-green-200 bg-green-50 text-green-800 hover:bg-green-100"
-                              disabled={!startDate}
+                            <button
                               type="button"
+                              disabled={!startDate}
+                              className="w-full flex items-center justify-start text-left font-normal border border-green-200 bg-green-50 text-green-800 hover:bg-green-100 rounded-md px-3 py-2 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {endDate ? format(endDate, 'PPP') : 'Select end date'}
-                            </Button>
+                            </button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 z-[100]" align="start" side="bottom">
+                          <PopoverContent className="w-auto p-0 z-[100] border-green-200 bg-white shadow-lg rounded-xl" align="start" side="bottom">
                             <Calendar
                               mode="single"
                               selected={endDate}
@@ -389,7 +508,7 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
                                 today.setHours(0, 0, 0, 0);
                                 return date <= startDate || date < today;
                               }}
-                              initialFocus
+                              className="rounded-xl"
                             />
                           </PopoverContent>
                         </Popover>
@@ -595,6 +714,211 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
             </DialogContent>
           </Dialog>
 
+          {/* Edit Seasonality Dialog */}
+          <Dialog open={showSeasonEditDialog} onOpenChange={setShowSeasonEditDialog}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-green-800">Edit Seasonality</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div>
+                  <Label className="text-sm font-medium text-green-600 mb-3 block">
+                    Select Seasons
+                  </Label>
+                  <p className="text-xs text-green-500 mb-3">
+                    Choose all seasons that apply to your trip
+                  </p>
+                  <div className="space-y-2">
+                    {seasonOptions.filter(s => s.id !== 'anytime').map((season) => {
+                      const isSelected = selectedSeasons.includes(season.id);
+                      return (
+                        <button
+                          key={season.id}
+                          onClick={() => toggleSeason(season.id)}
+                          className={`w-full p-3 rounded-xl text-left transition-all border ${
+                            isSelected
+                              ? 'bg-green-500 text-white border-green-500'
+                              : 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+                          }`}
+                          type="button"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl">{season.icon}</span>
+                              <div>
+                                <div className="text-sm font-medium">{season.label}</div>
+                                <div className={`text-xs ${isSelected ? 'text-white/70' : 'text-green-600'}`}>
+                                  {season.months}
+                                </div>
+                              </div>
+                            </div>
+                            {isSelected && <Check className="w-4 h-4" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {selectedSeasons.length > 0 && (
+                  <div>
+                    <Label className="text-sm font-medium text-green-600 mb-2 block">
+                      Selected Seasons ({selectedSeasons.length})
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSeasons.map((seasonId) => {
+                        const seasonOption = seasonOptions.find(s => s.id === seasonId);
+                        return seasonOption ? (
+                          <div
+                            key={seasonId}
+                            className="px-3 py-1 rounded-full text-xs bg-green-500 text-white flex items-center gap-1"
+                          >
+                            <span>{seasonOption.icon}</span>
+                            <span>{seasonOption.label}</span>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-4 border-t">
+                  <Button
+                    onClick={() => {
+                      if (selectedSeasons.length === 0 && startDate && endDate) {
+                        // Reset to auto-detected if nothing selected
+                        const detected = detectSeasonsFromDates(startDate, endDate);
+                        setSelectedSeasons(detected);
+                        setIsSeasonManuallySet(false);
+                      }
+                      setShowSeasonEditDialog(false);
+                    }}
+                    variant="outline"
+                    className="border-green-200 text-green-600"
+                  >
+                    Done
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Focus Location */}
+          <Card className="border-green-200 bg-white shadow-sm">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-green-600 mb-2 block">
+                    Adventure Focus Location
+                  </Label>
+                  <p className="text-xs text-green-500 mb-3">
+                    Choose where to focus your adventure
+                  </p>
+                  
+                  {/* Toggle between specific and random location */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <button
+                      onClick={() => {
+                        setIsFocusLocationRandom(false);
+                        setFocusLocationRadiusState(undefined);
+                      }}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        !isFocusLocationRandom
+                          ? 'bg-green-500 text-white'
+                          : 'bg-green-100 text-green-600 hover:bg-green-200'
+                      }`}
+                    >
+                      Specific Location
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsFocusLocationRandom(true);
+                        if (!focusLocationRadiusState) {
+                          setFocusLocationRadiusState(undefined); // "No limit"
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        isFocusLocationRandom
+                          ? 'bg-green-500 text-white'
+                          : 'bg-green-100 text-green-600 hover:bg-green-200'
+                      }`}
+                    >
+                      Random Location
+                    </button>
+                  </div>
+
+                  {/* Specific Location Input */}
+                  {!isFocusLocationRandom && (
+                    <div className="space-y-3">
+                      <LocationAutocomplete
+                        value={focusLocationState}
+                        onChange={(newLocation) => {
+                          setFocusLocationState(newLocation);
+                          setFocusLocationRadiusState(undefined); // Clear radius when specific location
+                        }}
+                        onSelect={(locationData) => {
+                          setFocusLocationState(locationData.name || locationData.display_name || '');
+                          setFocusLocationRadiusState(undefined);
+                        }}
+                        onValidationChange={() => {}}
+                        placeholder="e.g., California, London, Iceland"
+                        className="border-green-200 bg-green-50 text-green-800"
+                      />
+                      {focusLocationState && (
+                        <div className="flex items-center gap-2 text-green-700 p-2 bg-green-50 rounded-lg">
+                          <MapPin className="w-4 h-4" />
+                          <span className="text-sm">{focusLocationState}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Random Location Display with Radius Slider */}
+                  {isFocusLocationRandom && focusLocationState && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-4 mt-4 p-4 bg-green-50 rounded-xl border border-green-200"
+                    >
+                      <div className="flex items-center gap-2 text-green-800">
+                        <MapPin className="w-4 h-4" />
+                        <span className="font-medium">{focusLocationState}</span>
+                      </div>
+
+                      {/* Radius Slider */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-green-700">
+                            {focusLocationRadiusState === undefined ? 'No limit' : `Range: ${focusLocationRadiusState.toLocaleString()} km`}
+                          </span>
+                        </div>
+                        <Slider
+                          value={focusLocationRadiusState === undefined ? [20000] : [focusLocationRadiusState]}
+                          onValueChange={(value) => {
+                            const newValue = value[0];
+                            if (newValue >= 20000) {
+                              setFocusLocationRadiusState(undefined);
+                            } else {
+                              setFocusLocationRadiusState(newValue);
+                            }
+                          }}
+                          min={100}
+                          max={20000}
+                          step={100}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-green-600">
+                          <span>100 km</span>
+                          <span>No limit</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Transportation / Trip Types */}
           <Card className="border-green-200 bg-white shadow-sm">
             <CardContent className="p-6">
@@ -684,11 +1008,6 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
                                 </span>
                               )}
                             </div>
-                            {member.budget && (
-                              <p className="text-xs text-green-600">
-                                Budget: ${member.budget.toLocaleString()}
-                              </p>
-                            )}
                           </div>
                         </div>
                       ))}

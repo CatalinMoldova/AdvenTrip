@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Slider } from './ui/slider';
 import { AdventureRequest, User, GroupMember } from '../types';
-import { ChevronLeft, Check, Share2, Copy } from 'lucide-react';
+import { ChevronLeft, Check, Share2, Copy, MapPin, Shuffle } from 'lucide-react';
 import { toast } from 'sonner';
 import { LocationAutocomplete } from './LocationAutocomplete';
 
@@ -39,28 +40,36 @@ const seasonOptions = [
 export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user }: CreateAdventureWizardProps) {
   const [step, setStep] = useState(0);
   const [adventureName, setAdventureName] = useState('');
-  const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isLocationValid, setIsLocationValid] = useState(false);
   const [activities, setActivities] = useState<string[]>([]);
   const [season, setSeason] = useState<string>('');
+  const [focusLocation, setFocusLocation] = useState('');
+  const [selectedFocusLocation, setSelectedFocusLocation] = useState<any>(null);
+  const [isFocusLocationValid, setIsFocusLocationValid] = useState(false);
+  const [isRandomLocation, setIsRandomLocation] = useState(false);
+  const [focusLocationRadius, setFocusLocationRadius] = useState<number | undefined>(undefined);
   const [duration, setDuration] = useState('');
   const [tripTypes, setTripTypes] = useState<string[]>([]);
   const [mode, setMode] = useState<'individual' | 'group' | null>(null);
   const [inviteLink, setInviteLink] = useState('');
 
-  const totalSteps = 8; // Keep totalSteps at 8, but step 7 is now the success screen
+  const totalSteps = 8; // Adventure name, location, activities, season, focus location, duration, trip types, success
 
   const handleClose = () => {
     setStep(0);
     setAdventureName('');
-    setName(user?.name || '');
     setLocation(user?.location || '');
     setSelectedLocation(null);
     setIsLocationValid(false);
     setActivities([]);
     setSeason('');
+    setFocusLocation('');
+    setSelectedFocusLocation(null);
+    setIsFocusLocationValid(false);
+    setIsRandomLocation(false);
+    setFocusLocationRadius(undefined);
     setDuration('');
     setTripTypes([]);
     setMode(null);
@@ -87,27 +96,77 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
     setIsLocationValid(isValid);
   };
 
+  const handleFocusLocationChange = (newLocation: string) => {
+    setFocusLocation(newLocation);
+    setIsRandomLocation(false);
+    if (!newLocation) {
+      setSelectedFocusLocation(null);
+      setIsFocusLocationValid(false);
+    }
+  };
+
+  const handleFocusLocationSelect = (locationData: any) => {
+    setSelectedFocusLocation(locationData);
+    setIsRandomLocation(false);
+    setFocusLocationRadius(undefined); // Clear radius when specific location is selected
+  };
+
+  const handleFocusLocationValidationChange = (isValid: boolean) => {
+    setIsFocusLocationValid(isValid);
+  };
+
+  const handleRandomLocation = () => {
+    // Use user's base location as the center point
+    const userBaseLocation = user?.location || location || '';
+    if (!userBaseLocation) {
+      toast.error('Please set your location first');
+      return;
+    }
+    setFocusLocation(userBaseLocation);
+    setIsRandomLocation(true);
+    setIsFocusLocationValid(true);
+    setSelectedFocusLocation({ name: userBaseLocation });
+    setFocusLocationRadius(undefined); // Start with "No limit"
+  };
+
   const handleNext = () => {
     // Validation
     if (step === 0 && !adventureName.trim()) {
       toast.error('Please enter an adventure name');
       return;
     }
-    if (step === 1 && !name.trim()) {
-      toast.error('Please enter your name');
-      return;
-    }
-    if (step === 2 && (!location.trim() || !isLocationValid)) {
+    if (step === 1 && (!location.trim() || !isLocationValid)) {
       toast.error('Please select a valid location from the suggestions');
       return;
     }
-    if (step === 3 && activities.length === 0) {
+    if (step === 2 && activities.length === 0) {
       toast.error('Please select at least one activity');
       return;
     }
-    if (step === 4 && !season) {
+    if (step === 3 && !season) {
       toast.error('Please select a season');
       return;
+    }
+    if (step === 4) {
+      // Auto-fallback to user's base location if no location selected
+      if (!focusLocation.trim() || !isFocusLocationValid) {
+        const userBaseLocation = user?.location || location || '';
+        if (userBaseLocation) {
+          setFocusLocation(userBaseLocation);
+          setIsRandomLocation(true);
+          setIsFocusLocationValid(true);
+          setSelectedFocusLocation({ name: userBaseLocation });
+          setFocusLocationRadius(undefined); // Default to "No limit"
+          // Proceed to next step after setting the values
+          if (step < totalSteps - 1) {
+            setStep(step + 1);
+          }
+          return;
+        } else {
+          toast.error('Please select a location or set your base location first');
+          return;
+        }
+      }
     }
     if (step === 5 && (!duration || parseInt(duration) < 1)) {
       toast.error('Please enter a valid duration');
@@ -161,13 +220,16 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         userId: user?.id || '1',
         mode: 'group',
         numberOfDays: parseInt(duration),
+        season: season || undefined,
         activities: activities.map(a => a.replace(/[^\w\s]/g, '').trim()),
         customActivities: [],
         transportation: tripTypes.join(','), // Store trip types as comma-separated
+        focusLocation: focusLocation.trim(),
+        focusLocationRadius: focusLocationRadius,
         inviteLink: link,
         groupMembers: [{
           id: user?.id || '1',
-          name: name.trim(),
+          name: user?.name || 'Traveler',
           email: user?.email || '',
           avatar: user?.avatar || '',
           budget: user?.budget || 1000,
@@ -188,9 +250,12 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         userId: user?.id || '1',
         mode: 'individual',
         numberOfDays: parseInt(duration),
+        season: season || undefined,
         activities: activities.map(a => a.replace(/[^\w\s]/g, '').trim()),
         customActivities: [],
         transportation: tripTypes.join(','), // Store trip types as comma-separated
+        focusLocation: focusLocation.trim(),
+        focusLocationRadius: focusLocationRadius,
         status: 'generating',
         createdAt: new Date().toISOString(),
       };
@@ -240,23 +305,6 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl text-green-800 mb-2">What's your name?</h2>
-              <p className="text-sm text-green-600">Let's personalize your adventure</p>
-            </div>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              className="text-center text-lg border-0 bg-green-100 rounded-xl px-6 py-4 text-green-800"
-              autoFocus
-            />
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
               <h2 className="text-2xl text-green-800 mb-2">Where are you?</h2>
               <p className="text-sm text-green-600">Your starting point</p>
             </div>
@@ -279,7 +327,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </div>
         );
 
-      case 3:
+      case 2:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -309,7 +357,7 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -347,6 +395,112 @@ export function CreateAdventureWizard({ isOpen, onClose, onCreateAdventure, user
                   </motion.button>
                 );
               })}
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl text-green-800 mb-2">Where do you want to focus your adventure?</h2>
+              <p className="text-sm text-green-600">Choose a specific location or pick a random one</p>
+            </div>
+
+            {/* Option 1: Select or type a specific location */}
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-green-700">Select or type a specific location</label>
+                <LocationAutocomplete
+                  value={isRandomLocation ? '' : focusLocation}
+                  onChange={handleFocusLocationChange}
+                  onSelect={handleFocusLocationSelect}
+                  onValidationChange={handleFocusLocationValidationChange}
+                  placeholder="e.g., California, London, Iceland"
+                  className="border-0 bg-green-100 rounded-xl px-4 py-3 text-green-800"
+                  disabled={isRandomLocation}
+                />
+                {focusLocation && !isRandomLocation && !isFocusLocationValid && (
+                  <p className="text-sm text-red-500">
+                    Please select a location from the suggestions above
+                  </p>
+                )}
+                {focusLocation && !isRandomLocation && isFocusLocationValid && (
+                  <div className="flex items-center gap-2 text-green-700 p-2 bg-green-50 rounded-lg">
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm">{focusLocation}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4 my-4">
+                <div className="flex-1 h-px bg-green-200"></div>
+                <span className="text-sm text-green-600">or</span>
+                <div className="flex-1 h-px bg-green-200"></div>
+              </div>
+
+              {/* Option 2: Random Location */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-green-700">Choose a random location</label>
+                <Button
+                  onClick={handleRandomLocation}
+                  variant="outline"
+                  className="w-full border-green-200 bg-green-50 text-green-700 hover:bg-green-100 rounded-xl h-12"
+                  disabled={!user?.location && !location}
+                >
+                  <Shuffle className="w-4 h-4 mr-2" />
+                  Random Location
+                </Button>
+                {!user?.location && !location && (
+                  <p className="text-xs text-green-600 italic">
+                    Set your location first to use this feature
+                  </p>
+                )}
+
+                {/* Show user's location and radius slider when random mode is active */}
+                {isRandomLocation && focusLocation && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-4 mt-4 p-4 bg-green-50 rounded-xl border border-green-200"
+                  >
+                    <div className="flex items-center gap-2 text-green-800">
+                      <MapPin className="w-4 h-4" />
+                      <span className="font-medium">{focusLocation}</span>
+                    </div>
+
+                    {/* Radius Slider - only visible in random mode */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-green-700">
+                          {focusLocationRadius === undefined ? 'No limit' : `Range: ${focusLocationRadius.toLocaleString()} km`}
+                        </span>
+                      </div>
+                      <Slider
+                        value={focusLocationRadius === undefined ? [20000] : [focusLocationRadius]}
+                        onValueChange={(value) => {
+                          const newValue = value[0];
+                          // If slider is at max (20000), it means "No limit" (undefined)
+                          if (newValue >= 20000) {
+                            setFocusLocationRadius(undefined);
+                          } else {
+                            setFocusLocationRadius(newValue);
+                          }
+                        }}
+                        min={100}
+                        max={20000}
+                        step={100}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-green-600">
+                        <span>100 km</span>
+                        <span>No limit</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
             </div>
           </div>
         );

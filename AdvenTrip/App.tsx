@@ -218,8 +218,6 @@ function FeedPage() {
         activeTab="feed"
         onTabChange={(tab) => {
           if (tab === 'adventures') navigate('/adventures');
-          if (tab === 'create') navigate('/create');
-          if (tab === 'chat') navigate('/chat');
           if (tab === 'profile') navigate('/profile');
         }}
       />
@@ -289,8 +287,6 @@ function AdventuresPage() {
         activeTab="adventures"
         onTabChange={(tab) => {
           if (tab === 'feed') navigate('/home');
-          if (tab === 'create') navigate('/create');
-          if (tab === 'chat') navigate('/chat');
           if (tab === 'profile') navigate('/profile');
         }}
       />
@@ -333,8 +329,6 @@ function ProfilePage() {
         onTabChange={(tab) => {
           if (tab === 'feed') navigate('/home');
           if (tab === 'adventures') navigate('/adventures');
-          if (tab === 'create') navigate('/create');
-          if (tab === 'chat') navigate('/chat');
         }}
       />
     </>
@@ -493,8 +487,6 @@ function AdventureSettingsPage() {
         activeTab="adventures"
         onTabChange={(tab) => {
           if (tab === 'feed') navigate('/home');
-          if (tab === 'create') navigate('/create');
-          if (tab === 'chat') navigate('/chat');
           if (tab === 'profile') navigate('/profile');
         }}
       />
@@ -564,11 +556,9 @@ function CreatePostPage() {
         }}
       />
       <BottomTabNavigation
-        activeTab="create"
+        activeTab="feed"
         onTabChange={(tab) => {
-          if (tab === 'feed') navigate('/home');
           if (tab === 'adventures') navigate('/adventures');
-          if (tab === 'chat') navigate('/chat');
           if (tab === 'profile') navigate('/profile');
         }}
       />
@@ -584,11 +574,9 @@ function ChatPage() {
     <>
       <ChatScreen />
       <BottomTabNavigation
-        activeTab="chat"
+        activeTab="feed"
         onTabChange={(tab) => {
-          if (tab === 'feed') navigate('/home');
           if (tab === 'adventures') navigate('/adventures');
-          if (tab === 'create') navigate('/create');
           if (tab === 'profile') navigate('/profile');
         }}
       />

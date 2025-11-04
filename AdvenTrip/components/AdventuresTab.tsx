@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AdventureRequest, Adventure, User } from '../types';
 import { Button } from './ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Plus, FolderOpen, Users, User as UserIcon, ChevronRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SwipeableAdventureCard } from './SwipeableAdventureCard';
@@ -210,14 +211,17 @@ export function AdventuresTab({
                     {folder.members && folder.members.length > 0 && (
                       <div className="flex items-center gap-2 mb-4">
                         <div className="flex -space-x-2">
-                          {folder.members.slice(0, 3).map((member) => (
-                            <div
-                              key={member.id}
-                              className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-xs border-2 border-white"
-                            >
-                              {member.avatar || member.name[0]}
-                            </div>
-                          ))}
+                              {folder.members.slice(0, 3).map((member) => (
+                                <Avatar
+                                  key={member.id}
+                                  className="w-8 h-8 border-2 border-white"
+                                >
+                                  <AvatarImage src={member.avatar} />
+                                  <AvatarFallback className="bg-green-500 text-white text-xs">
+                                    {member.name[0].toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                              ))}
                         </div>
                         <span className="text-xs text-green-600">
                           {folder.members.length} {folder.members.length === 1 ? 'member' : 'members'}

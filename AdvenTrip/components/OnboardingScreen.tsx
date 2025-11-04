@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { MapPin, Sparkles, ArrowRight, Compass, Plus, X as XIcon } from 'lucide-react';
+import { MapPin, Sparkles, ArrowRight, Compass, Plus, X as XIcon, User as UserIcon, Check } from 'lucide-react';
 import { User } from '../types';
 import { LocationAutocomplete } from './LocationAutocomplete';
 import { AdvenTripLogo } from './ui/AdvenTripLogo';
@@ -12,27 +12,32 @@ interface OnboardingScreenProps {
   onComplete: (user: User) => void;
 }
 
-const availableActivities = [
-  'Hiking', 'Beach', 'Museums', 'Food Tours', 'Nightlife',
-  'Shopping', 'Photography', 'Adventure Sports', 'Wildlife',
-  'Cultural Sites', 'Water Sports', 'Mountains', 'Spa & Wellness',
-  'Local Markets', 'Art Galleries', 'Theme Parks', 'Skiing',
-  'Diving', 'Surfing', 'Camping'
+const preferenceOptions = [
+  'Beach', 'Hiking', 'Nightlife', 'Scuba Diving', 'Culture', 'Food',
+  'Wellness', 'Snow Sports', 'Shopping', 'Adventure', 'Art Galleries'
 ];
 
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
-  const [step, setStep] = useState<'location' | 'activities' | 'transition'>('location');
+  const [step, setStep] = useState<'name' | 'location' | 'preferences' | 'transition'>('name');
+  const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isLocationValid, setIsLocationValid] = useState(false);
-  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
-  const [customActivity, setCustomActivity] = useState('');
-  const [customActivities, setCustomActivities] = useState<string[]>([]);
+  const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
+  const [customPreference, setCustomPreference] = useState('');
+  const [customPreferences, setCustomPreferences] = useState<string[]>([]);
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim()) {
+      setStep('location');
+    }
+  };
 
   const handleLocationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (location.trim() && isLocationValid) {
-      setStep('activities');
+      setStep('preferences');
     }
   };
 
@@ -52,36 +57,36 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
     setIsLocationValid(isValid);
   };
 
-  const toggleActivity = (activity: string) => {
-    setSelectedActivities(prev =>
-      prev.includes(activity)
-        ? prev.filter(a => a !== activity)
-        : [...prev, activity]
+  const togglePreference = (preference: string) => {
+    setSelectedPreferences(prev =>
+      prev.includes(preference)
+        ? prev.filter(p => p !== preference)
+        : [...prev, preference]
     );
   };
 
-  const addCustomActivity = () => {
-    if (customActivity.trim() && !customActivities.includes(customActivity.trim()) && !selectedActivities.includes(customActivity.trim())) {
-      setCustomActivities([...customActivities, customActivity.trim()]);
-      setSelectedActivities([...selectedActivities, customActivity.trim()]);
-      setCustomActivity('');
+  const addCustomPreference = () => {
+    if (customPreference.trim() && !customPreferences.includes(customPreference.trim()) && !selectedPreferences.includes(customPreference.trim())) {
+      setCustomPreferences([...customPreferences, customPreference.trim()]);
+      setSelectedPreferences([...selectedPreferences, customPreference.trim()]);
+      setCustomPreference('');
     }
   };
 
-  const removeCustomActivity = (activity: string) => {
-    setCustomActivities(customActivities.filter(a => a !== activity));
-    setSelectedActivities(selectedActivities.filter(a => a !== activity));
+  const removeCustomPreference = (preference: string) => {
+    setCustomPreferences(customPreferences.filter(p => p !== preference));
+    setSelectedPreferences(selectedPreferences.filter(p => p !== preference));
   };
 
   const handleComplete = () => {
-    if (selectedActivities.length > 0) {
+    if (selectedPreferences.length > 0) {
       setStep('transition');
       setTimeout(() => {
         const user: User = {
           id: Math.random().toString(36).substr(2, 9),
-          name: 'Traveler',
+          name: name.trim(),
           location: location,
-          interests: selectedActivities,
+          interests: selectedPreferences,
         };
         onComplete(user);
       }, 1500);
@@ -91,6 +96,54 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8">
+        {step === 'name' && (
+          <Card className="w-full">
+            <CardHeader className="text-center space-y-0">
+              <div className="w-32 h-32 mx-auto flex items-center justify-center">
+                <img 
+                  src="/AdvenTrip Logo transparent.png" 
+                  alt="AdvenTrip Logo" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="space-y-2">
+                <CardTitle className="text-3xl font-black font-display tracking-tight text-green-600 bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+                  AdvenTrip
+                </CardTitle>
+                <p className="text-muted-foreground">
+                  Your adventure begins here
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <form onSubmit={handleNameSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <UserIcon className="w-4 h-4" />
+                    What's your name?
+                  </label>
+                  <Input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="text-center text-lg"
+                    autoFocus
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={!name.trim()}
+                  className="w-full"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
         {step === 'location' && (
           <Card className="w-full">
             <CardHeader className="text-center space-y-0">
@@ -143,72 +196,74 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           </Card>
         )}
 
-        {step === 'activities' && (
+        {step === 'preferences' && (
           <Card className="w-full max-w-2xl">
             <CardHeader className="text-center space-y-4">
               <div className="w-16 h-16 mx-auto bg-primary rounded-2xl flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-primary-foreground" />
               </div>
               <div className="space-y-2">
-                <CardTitle className="text-3xl">What interests you?</CardTitle>
+                <CardTitle className="text-3xl">What are your preferences?</CardTitle>
                 <p className="text-muted-foreground">
-                  Select activities you'd love to experience
+                  Select all that apply
                 </p>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex flex-wrap gap-2">
-                {availableActivities.map((activity) => (
+              <div className="flex flex-wrap gap-2 justify-center">
+                {preferenceOptions.map((preference) => (
                   <Button
-                    key={activity}
+                    key={preference}
                     type="button"
-                    variant={selectedActivities.includes(activity) ? "default" : "outline"}
+                    variant={selectedPreferences.includes(preference) ? "default" : "outline"}
                     size="sm"
-                    onClick={() => toggleActivity(activity)}
+                    onClick={() => togglePreference(preference)}
+                    className={selectedPreferences.includes(preference) ? "bg-green-600 hover:bg-green-700" : ""}
                   >
-                    {activity}
+                    {preference}
+                    {selectedPreferences.includes(preference) && <Check className="w-4 h-4 ml-2" />}
                   </Button>
                 ))}
               </div>
 
-              {/* Custom Activities */}
-              <div className="space-y-4">
+              {/* Custom Preferences */}
+              <div className="space-y-4 border-t pt-4">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Plus className="w-4 h-4" />
-                  Add your own activities
+                  Add your own preferences
                 </label>
                 <div className="flex gap-2">
                   <Input
                     type="text"
-                    value={customActivity}
-                    onChange={(e) => setCustomActivity(e.target.value)}
+                    value={customPreference}
+                    onChange={(e) => setCustomPreference(e.target.value)}
                     placeholder="e.g., Wine Tasting, Rock Climbing"
                     className="flex-1"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomActivity())}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomPreference())}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={addCustomActivity}
+                    onClick={addCustomPreference}
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-                {customActivities.length > 0 && (
+                {customPreferences.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {customActivities.map((activity) => (
+                    {customPreferences.map((preference) => (
                       <Badge
-                        key={activity}
+                        key={preference}
                         variant="secondary"
-                        className="pr-1"
+                        className="pr-1 bg-green-100 text-green-700 border-green-200"
                       >
-                        {activity}
+                        {preference}
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeCustomActivity(activity)}
+                          onClick={() => removeCustomPreference(preference)}
                           className="h-4 w-4 p-0 ml-2 hover:bg-transparent"
                         >
                           <XIcon className="w-3 h-3" />
@@ -222,16 +277,16 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
               <div className="space-y-4">
                 <Button
                   onClick={handleComplete}
-                  disabled={selectedActivities.length === 0}
+                  disabled={selectedPreferences.length === 0}
                   className="w-full"
                 >
                   Start Exploring
                   <Sparkles className="w-4 h-4 ml-2" />
                 </Button>
                 
-                {selectedActivities.length > 0 && (
+                {selectedPreferences.length > 0 && (
                   <p className="text-center text-sm text-muted-foreground">
-                    {selectedActivities.length} {selectedActivities.length === 1 ? 'activity' : 'activities'} selected
+                    {selectedPreferences.length} {selectedPreferences.length === 1 ? 'preference' : 'preferences'} selected
                   </p>
                 )}
               </div>

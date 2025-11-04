@@ -6,6 +6,7 @@ export interface User {
   avatar?: string;
   email?: string;
   budget?: number;
+  tripRangeDistance?: number; // in kilometers, undefined means "No limit"
 }
 
 export interface Friend {
@@ -38,12 +39,15 @@ export interface AdventureRequest {
   numberOfDays: number;
   startDate?: string;
   endDate?: string;
+  season?: string; // e.g., 'spring', 'summer', 'fall', 'winter', 'anytime', or comma-separated for multiple seasons
   activities: string[];
   customActivities: string[];
   budget?: number;
   transportation?: string;
   travelDistance?: number;
   travelDistanceUnit?: 'hours' | 'miles';
+  focusLocation?: string; // The location where the adventure should be focused
+  focusLocationRadius?: number; // Radius in kilometers around the focus location (undefined means "No limit")
   groupMembers?: GroupMember[];
   inviteLink?: string;
   status: 'pending' | 'generating' | 'completed';

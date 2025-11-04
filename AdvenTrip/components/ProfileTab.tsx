@@ -3,7 +3,12 @@ import { User, Adventure } from '../types';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
-import { MapPin, User as UserIcon, Bookmark, Trash2 } from 'lucide-react';
+import { Slider } from './ui/slider';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { ProfilePicturePicker } from './ProfilePicturePicker';
+import { LocationAutocomplete } from './LocationAutocomplete';
+import { MapPin, User as UserIcon, Bookmark, Trash2, Edit2, Check, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -16,66 +21,96 @@ interface ProfileTabProps {
   onRemoveSavedTrip?: (adventureId: string) => void;
 }
 
-const transportOptions = [
-  { id: 'all', label: 'All means of transport', icon: '🌍' },
-  { id: 'car', label: 'Car', icon: '🚗' },
-  { id: 'plane', label: 'Plane', icon: '✈️' },
-  { id: 'train', label: 'Train', icon: '🚆' },
-  { id: 'bus', label: 'Bus', icon: '🚌' },
-  { id: 'bike', label: 'Bike', icon: '🚴' },
+const preferenceOptions = [
+  'Beach', 'Hiking', 'Nightlife', 'Scuba Diving', 'Culture', 'Food', 
+  'Wellness', 'Snow Sports', 'Shopping', 'Adventure', 'Museums', 
+  'Photography', 'Wildlife', 'Water Sports', 'Mountains', 'Art Galleries',
+  'Theme Parks', 'Skiing', 'Diving', 'Surfing', 'Camping', 'Local Markets'
 ];
 
 export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedTrip }: ProfileTabProps) {
-  const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
-  const [selectedTransport, setSelectedTransport] = useState<string[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [isLocationValid, setIsLocationValid] = useState(true); // Assume valid if location exists
+  const [tripRangeDistance, setTripRangeDistance] = useState<number | undefined>(user?.tripRangeDistance);
+  const [selectedPreferences, setSelectedPreferences] = useState<string[]>(user?.interests || []);
+  const [showPreferencesDialog, setShowPreferencesDialog] = useState(false);
+  const [showProfilePicturePicker, setShowProfilePicturePicker] = useState(false);
   const [selectedAdventure, setSelectedAdventure] = useState<Adventure | null>(null);
 
   useEffect(() => {
     if (user) {
-      setName(user.name);
       setLocation(user.location);
-      const transportPrefs = user.interests?.filter(i => 
-        transportOptions.some(t => t.id === i.toLowerCase())
-      ) || [];
-      setSelectedTransport(transportPrefs);
+      setSelectedLocation(null); // Reset selected location
+      setIsLocationValid(!!user.location); // Valid if location exists
+      setTripRangeDistance(user.tripRangeDistance);
+      setSelectedPreferences(user.interests || []);
     }
   }, [user]);
 
-  const toggleTransport = (transportId: string) => {
-    if (transportId === 'all') {
-      setSelectedTransport(prev => prev.includes('all') ? [] : ['all']);
-    } else {
-      setSelectedTransport(prev => {
-        const newSelection = prev.filter(t => t !== 'all');
-        if (newSelection.includes(transportId)) {
-          return newSelection.filter(t => t !== transportId);
-        } else {
-          return [...newSelection, transportId];
-        }
-      });
+  const handleLocationChange = (newLocation: string) => {
+    setLocation(newLocation);
+    if (!newLocation) {
+      setSelectedLocation(null);
+      setIsLocationValid(false);
     }
   };
 
+  const handleLocationSelect = (locationData: any) => {
+    setSelectedLocation(locationData);
+    setIsLocationValid(true);
+  };
+
+  const handleLocationValidationChange = (isValid: boolean) => {
+    setIsLocationValid(isValid);
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const togglePreference = (preference: string) => {
+    setSelectedPreferences(prev =>
+      prev.includes(preference)
+        ? prev.filter(p => p !== preference)
+        : [...prev, preference]
+    );
+  };
+
   const handleSave = () => {
-    if (!name.trim()) {
-      toast.error('Please enter your name');
-      return;
-    }
     if (!location.trim()) {
       toast.error('Please enter your location');
+      return;
+    }
+    if (!isLocationValid) {
+      toast.error('Please select a valid location from the suggestions');
       return;
     }
 
     const updatedUser: User = {
       id: user?.id || '1',
-      name: name.trim(),
+      name: user?.name || 'Traveler',
       location: location.trim(),
-      interests: selectedTransport,
+      interests: selectedPreferences,
+      tripRangeDistance: tripRangeDistance,
+      avatar: user?.avatar, // Preserve avatar when saving
     };
 
     onUpdateUser(updatedUser);
     toast.success('Profile updated successfully! ✅');
+  };
+
+  const handleAvatarSelect = (avatarUrl: string) => {
+    const updatedUser: User = {
+      ...user!,
+      avatar: avatarUrl,
+    };
+    onUpdateUser(updatedUser);
   };
 
   return (
@@ -88,62 +123,108 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
       <div className="max-w-lg mx-auto px-6 py-6">
         {/* Profile Avatar */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mb-3">
-            <UserIcon className="w-12 h-12 text-white" />
+          <div className="relative">
+            <Avatar className="w-24 h-24 border-4 border-green-600">
+              <AvatarImage src={user?.avatar} />
+              <AvatarFallback className="bg-green-600 text-white text-2xl">
+                {getInitials(user?.name || 'Traveler')}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              onClick={() => setShowProfilePicturePicker(true)}
+              className="absolute bottom-0 right-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700 transition-colors shadow-lg"
+              type="button"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
           </div>
+          <p className="text-lg font-semibold text-black mt-3">{user?.name || 'Traveler'}</p>
           <p className="text-xs text-gray-600">AdvenTrip Traveler</p>
         </div>
 
         {/* Form */}
         <div className="space-y-6 mb-8">
-          {/* Name Section */}
-          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-            <Label className="text-xs text-gray-600 mb-2 block">NAME</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              className="border-0 bg-white rounded-xl px-4 py-3 text-black"
-            />
-          </div>
-
           {/* Location Section */}
           <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
             <Label className="text-xs text-gray-600 mb-2 block">LOCATION</Label>
             <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+              <LocationAutocomplete
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={handleLocationChange}
+                onSelect={handleLocationSelect}
+                onValidationChange={handleLocationValidationChange}
                 placeholder="Where do you live?"
-                className="border-0 bg-white rounded-xl pl-11 pr-4 py-3 text-black"
+                className="pl-11"
               />
+              {location && !isLocationValid && (
+                <p className="text-xs text-red-500 mt-1">
+                  Please select a location from the suggestions above
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Transportation Preferences */}
+          {/* Trip Range Distance Section */}
           <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-            <Label className="text-xs text-gray-600 mb-3 block">PREFERRED TRANSPORTATION</Label>
-            <div className="flex flex-wrap gap-2">
-              {transportOptions.map((transport) => {
-                const isSelected = selectedTransport.includes(transport.id);
-                return (
-                  <motion.button
-                    key={transport.id}
-                    onClick={() => toggleTransport(transport.id)}
-                    className={`px-4 py-2 rounded-full text-sm transition-colors border ${
-                      isSelected
-                        ? 'bg-green-600 text-white border-green-600'
-                        : 'bg-white text-black border-gray-200'
-                    }`}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <span className="mr-2">{transport.icon}</span>
-                    {transport.label}
-                  </motion.button>
-                );
-              })}
+            <Label className="text-xs text-gray-600 mb-3 block">TRIP RANGE DISTANCE</Label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">
+                  {tripRangeDistance === undefined ? 'No limit' : `Range: ${tripRangeDistance.toLocaleString()} km`}
+                </span>
+              </div>
+              <Slider
+                value={tripRangeDistance === undefined ? [20000] : [tripRangeDistance]}
+                onValueChange={(value) => {
+                  const newValue = value[0];
+                  // If slider is at max (20000), it means "No limit" (undefined)
+                  if (newValue >= 20000) {
+                    setTripRangeDistance(undefined);
+                  } else {
+                    setTripRangeDistance(newValue);
+                  }
+                }}
+                min={100}
+                max={20000}
+                step={100}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>100 km</span>
+                <span>No limit</span>
+              </div>
             </div>
+          </div>
+
+          {/* Preferences Section */}
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-xs text-gray-600">PREFERENCES</Label>
+              <Button
+                onClick={() => setShowPreferencesDialog(true)}
+                variant="ghost"
+                size="sm"
+                className="text-xs text-green-600 hover:text-green-700 p-0 h-auto"
+              >
+                <Edit2 className="w-3 h-3 mr-1" />
+                Edit Preferences
+              </Button>
+            </div>
+            {selectedPreferences.length === 0 ? (
+              <p className="text-sm text-gray-500 italic">No preferences selected</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {selectedPreferences.map((preference) => (
+                  <span
+                    key={preference}
+                    className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-700 border border-green-200"
+                  >
+                    {preference}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Save Button */}
@@ -214,6 +295,80 @@ export function ProfileTab({ user, onUpdateUser, savedTrips = [], onRemoveSavedT
           )}
         </div>
       </div>
+
+      {/* Profile Picture Picker */}
+      <ProfilePicturePicker
+        currentAvatar={user?.avatar}
+        userName={user?.name || 'Traveler'}
+        isOpen={showProfilePicturePicker}
+        onClose={() => setShowProfilePicturePicker(false)}
+        onSelectPicture={handleAvatarSelect}
+      />
+
+      {/* Preferences Edit Dialog */}
+      <Dialog open={showPreferencesDialog} onOpenChange={setShowPreferencesDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-green-800">Edit Preferences</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div>
+              <Label className="text-sm font-medium text-green-600 mb-3 block">
+                Select Your Preferences
+              </Label>
+              <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto">
+                {preferenceOptions.map((preference) => {
+                  const isSelected = selectedPreferences.includes(preference);
+                  return (
+                    <motion.button
+                      key={preference}
+                      onClick={() => togglePreference(preference)}
+                      className={`px-4 py-2 rounded-full text-sm transition-all border ${
+                        isSelected
+                          ? 'bg-green-500 text-white border-green-500'
+                          : 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+                      }`}
+                      whileTap={{ scale: 0.95 }}
+                      type="button"
+                    >
+                      {preference}
+                      {isSelected && <Check className="inline w-4 h-4 ml-2" />}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {selectedPreferences.length > 0 && (
+              <div>
+                <Label className="text-sm font-medium text-green-600 mb-2 block">
+                  Selected Preferences ({selectedPreferences.length})
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPreferences.map((preference) => (
+                    <span
+                      key={preference}
+                      className="px-3 py-1 rounded-full text-xs bg-green-500 text-white"
+                    >
+                      {preference}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                onClick={() => setShowPreferencesDialog(false)}
+                variant="outline"
+                className="border-green-200 text-green-600"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Adventure Detail Modal */}
       {selectedAdventure && (

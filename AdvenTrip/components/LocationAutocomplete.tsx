@@ -17,6 +17,7 @@ interface LocationAutocompleteProps {
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
+  disabled?: boolean;
   onValidationChange?: (isValid: boolean) => void;
 }
 
@@ -27,6 +28,7 @@ export function LocationAutocomplete({
   placeholder = "City, Country",
   className = "",
   autoFocus = false,
+  disabled = false,
   onValidationChange
 }: LocationAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
@@ -206,6 +208,7 @@ export function LocationAutocomplete({
           placeholder={placeholder}
           className={`${className} ${isLoading || selectedLocation ? 'pr-10' : ''}`}
           autoFocus={autoFocus}
+          disabled={disabled}
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
