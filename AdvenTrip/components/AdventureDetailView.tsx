@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Adventure } from '../types';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -14,14 +14,50 @@ interface AdventureDetailViewProps {
   adventure: Adventure;
   onClose: () => void;
   onSave: () => void;
+  editable?: boolean;
+  onUpdate?: (updatedAdventure: Adventure) => void;
 }
 
-export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDetailViewProps) {
+export function AdventureDetailView({ adventure, onClose, onSave, editable = false, onUpdate }: AdventureDetailViewProps) {
   const [selectedTab, setSelectedTab] = useState('overview');
   const [showHotelDialog, setShowHotelDialog] = useState(false);
   const [customHotel, setCustomHotel] = useState(adventure.hotel.name);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  // Editable fields
+  const [title, setTitle] = useState(adventure.title);
+  const [description, setDescription] = useState(adventure.description);
+  const [activities, setActivities] = useState<string[]>(adventure.activities);
+  const [editingAdventure, setEditingAdventure] = useState<Adventure>(adventure);
+
+  // Update editingAdventure when adventure prop changes
+  useEffect(() => {
+    setEditingAdventure(adventure);
+    setTitle(adventure.title);
+    setDescription(adventure.description);
+    setActivities(adventure.activities);
+    setCustomHotel(adventure.hotel.name);
+  }, [adventure]);
+
+  const handleFieldChange = (field: keyof Adventure, value: any) => {
+    const updated = { ...editingAdventure, [field]: value };
+    setEditingAdventure(updated);
+    if (onUpdate) {
+      onUpdate(updated);
+    }
+  };
+
+  const handleActivityToggle = (activity: string) => {
+    const updatedActivities = activities.includes(activity)
+      ? activities.filter(a => a !== activity)
+      : [...activities, activity];
+    setActivities(updatedActivities);
+    const updated = { ...editingAdventure, activities: updatedActivities };
+    setEditingAdventure(updated);
+    if (onUpdate) {
+      onUpdate(updated);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 overflow-y-auto">
@@ -43,7 +79,20 @@ export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDet
               <X className="w-5 h-5" />
             </button>
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-8">
-              <h1 className="text-white mb-2 drop-shadow-lg">{adventure.title}</h1>
+              {editable ? (
+                <Input
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    handleFieldChange('title', e.target.value);
+                  }}
+                  className="bg-white/20 backdrop-blur-sm border-white/40 text-white text-2xl font-bold placeholder:text-white/70 mb-2"
+                  placeholder="Trip title"
+                  style={{ color: 'white' }}
+                />
+              ) : (
+                <h1 className="text-white mb-2 drop-shadow-lg">{adventure.title}</h1>
+              )}
               <div className="flex items-center gap-2 text-white/95 drop-shadow-md">
                 <MapPin className="w-5 h-5" />
                 {adventure.destination}
@@ -118,17 +167,57 @@ export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDet
               <TabsContent value="overview" className="space-y-4 mt-4">
                 <div>
                   <h3 className="text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-600">{adventure.description}</p>
+                  {editable ? (
+                    <textarea
+                      value={description}
+                      onChange={(e) => {
+                        setDescription(e.target.value);
+                        handleFieldChange('description', e.target.value);
+                      }}
+                      className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      rows={4}
+                      placeholder="Enter trip description"
+                    />
+                  ) : (
+                    <p className="text-gray-600">{adventure.description}</p>
+                  )}
                 </div>
                 <div>
                   <h3 className="text-gray-900 mb-2">Activities Included</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {adventure.activities.map((activity) => (
-                      <Badge key={activity} variant="secondary">
-                        {activity}
-                      </Badge>
-                    ))}
-                  </div>
+                  {editable ? (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {activities.map((activity) => (
+                          <Badge 
+                            key={activity} 
+                            variant="secondary"
+                            className="cursor-pointer hover:bg-gray-200"
+                            onClick={() => handleActivityToggle(activity)}
+                          >
+                            {activity} ×
+                          </Badge>
+                        ))}
+                      </div>
+                      <Input
+                        placeholder="Add new activity"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                            handleActivityToggle(e.currentTarget.value.trim());
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                        className="mt-2"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {adventure.activities.map((activity) => (
+                        <Badge key={activity} variant="secondary">
+                          {activity}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
@@ -195,10 +284,15 @@ export function AdventureDetailView({ adventure, onClose, onSave }: AdventureDet
             {/* Actions */}
             <div className="flex gap-3">
               <Button
-                onClick={onSave}
+                onClick={() => {
+                  if (editable && onUpdate) {
+                    onUpdate(editingAdventure);
+                  }
+                  onSave();
+                }}
                 className="flex-1 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all"
               >
-                Save Adventure 💫
+                {editable ? 'Save Changes' : 'Save Adventure'} 💫
               </Button>
               <Button onClick={onClose} variant="outline" className="flex-1 border-green-200 hover:bg-green-50">
                 Close
