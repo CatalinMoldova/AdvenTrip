@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Slider } from './ui/slider';
 import { LocationAutocomplete } from './LocationAutocomplete';
+import { AdventureDetailView } from './AdventureDetailView';
 import { ArrowLeft, Copy, Share2, Settings, Save, Calendar as CalendarIcon, DollarSign, Check, Plus, X, Users, Heart, MapPin, Shuffle } from 'lucide-react';
 import { AdventureRequest, Adventure, GroupMember } from '../types';
 import { toast } from 'sonner';
@@ -126,6 +127,9 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
   );
   const [isSeasonManuallySet, setIsSeasonManuallySet] = useState(!!adventureRequest.season);
   const [showSeasonEditDialog, setShowSeasonEditDialog] = useState(false);
+  // Selected saved trip for editing
+  const [selectedSavedTrip, setSelectedSavedTrip] = useState<Adventure | null>(null);
+  const [editingSavedTrip, setEditingSavedTrip] = useState<Adventure | null>(null);
 
   // Initialize seasons from dates if they exist and no season was manually set
   useEffect(() => {
@@ -290,6 +294,36 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
 
     onSave?.(updatedRequest);
     toast.success('Adventure settings saved! ✨');
+  };
+
+  const handleSavedTripClick = (savedTrip: { adventure: Adventure; rating: number; userId?: string }) => {
+    setSelectedSavedTrip(savedTrip.adventure);
+    setEditingSavedTrip({ ...savedTrip.adventure });
+  };
+
+  const handleSavedTripSave = () => {
+    if (!editingSavedTrip) return;
+
+    // Update the saved trip in the adventure request
+    const updatedSavedTrips = savedTrips.map(trip => 
+      trip.adventure.id === editingSavedTrip.id
+        ? { ...trip, adventure: editingSavedTrip }
+        : trip
+    );
+
+    const updatedRequest: AdventureRequest = {
+      ...adventureRequest,
+      savedAdventures: updatedSavedTrips,
+    };
+
+    onSave?.(updatedRequest);
+    toast.success('Trip updated successfully! ✨');
+    setSelectedSavedTrip(null);
+    setEditingSavedTrip(null);
+  };
+
+  const handleSavedTripUpdate = (updatedAdventure: Adventure) => {
+    setEditingSavedTrip(updatedAdventure);
   };
 
   const copyInviteLink = () => {
@@ -1050,7 +1084,9 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
                           animate={{ opacity: 1, scale: 1 }}
                           className="relative group"
                         >
-                          <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-green-200 bg-green-50 cursor-pointer hover:border-green-300 transition-all">
+                          <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-green-200 bg-green-50 cursor-pointer hover:border-green-300 transition-all"
+                            onClick={() => handleSavedTripClick(savedTrip)}
+                          >
                             {/* Trip Image */}
                             <img
                               src={savedTrip.adventure.images[0] || 'https://via.placeholder.com/300'}
@@ -1150,6 +1186,20 @@ export function AdventureSettings({ adventureRequest, onBack, onSave }: Adventur
           </div>
         </motion.div>
       </div>
+
+      {/* Saved Trip Detail Modal */}
+      {editingSavedTrip && (
+        <AdventureDetailView
+          adventure={editingSavedTrip}
+          onClose={() => {
+            setSelectedSavedTrip(null);
+            setEditingSavedTrip(null);
+          }}
+          onSave={handleSavedTripSave}
+          editable={true}
+          onUpdate={handleSavedTripUpdate}
+        />
+      )}
     </div>
   );
 }

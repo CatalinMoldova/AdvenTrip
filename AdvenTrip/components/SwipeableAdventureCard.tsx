@@ -467,36 +467,50 @@ export function SwipeableAdventureCard({
                   )}
                 </div>
 
-                {/* Itinerary */}
-                <div className="space-y-3 border-t border-black/10 pt-4">
-                  <div className="text-green-600 text-sm">Day-by-Day Itinerary</div>
-                  <div className="space-y-3">
-                    {adventure.itinerary.map((day) => (
-                      <div key={day.day} className="bg-black/5 p-4 rounded-xl">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm">
-                            {day.day}
+                {/* Itinerary - Only show for 7-day trips */}
+                {(() => {
+                  // Parse duration to check if it's 7 days
+                  const durationMatch = adventure.duration.match(/(\d+)/);
+                  const days = durationMatch ? parseInt(durationMatch[1]) : 0;
+                  const is7Days = days === 7;
+                  
+                  return is7Days && adventure.itinerary && adventure.itinerary.length > 0 ? (
+                    <div className="space-y-3 border-t border-black/10 pt-4">
+                      <div className="text-green-600 text-sm">Day-by-Day Itinerary</div>
+                      <div className="space-y-3">
+                        {adventure.itinerary.map((day) => (
+                          <div key={day.day} className="bg-black/5 p-4 rounded-xl">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm">
+                                {day.day}
+                              </div>
+                              <div className="text-green-800 font-medium">{day.title}</div>
+                            </div>
+                            <ul className="space-y-1 ml-10">
+                              {day.activities.map((activity, idx) => (
+                                <li key={idx} className="text-sm text-green-800/70">
+                                  • {activity}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                          <div className="text-green-800">{day.title}</div>
-                        </div>
-                        <ul className="space-y-1 ml-10">
-                          {day.activities.map((activity, idx) => (
-                            <li key={idx} className="text-sm text-green-800/70">
-                              • {activity}
-                            </li>
-                          ))}
-                        </ul>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  ) : null;
+                })()}
 
                 {/* Budget */}
                 <div className="space-y-3 border-t border-black/10 pt-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-green-600 text-sm">
-                      <DollarSign className="w-4 h-4" />
-                      <span>Total Budget</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-green-600 text-sm">
+                        <DollarSign className="w-4 h-4" />
+                        <span>Fixed Budget</span>
+                      </div>
+                      <p className="text-xs text-green-600/70 ml-6">
+                        Includes fixed costs (transportation + hotel + main activities)
+                      </p>
                     </div>
                     {editMode !== 'budget' && (
                       <button
