@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import openDatabaseSync from 'expo-sqlite/kv-store';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Pressable, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
@@ -46,6 +46,7 @@ const STORIES = [
 const STORY_DURATION = 3000; // 3 seconds
 
 export default function WelcomeScreen() {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const timerRef = useRef<number | null>(null);
 
@@ -152,7 +153,7 @@ export default function WelcomeScreen() {
             { backgroundColor: pressed ? '#000000' : '#161616' }
           ]}
           onPressIn={handleButtonPressIn}
-          onPress={handleGetStarted}
+          onPress={() => router.push('/signup')}
         >
           <ThemedText style={styles.buttonText}>
             Get Started
