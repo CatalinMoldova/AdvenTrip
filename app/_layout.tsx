@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 
 import { UserProvider } from '@/contexts/UserContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import '../global.css';
 
 // 🚧 DEVELOPMENT MODE TOGGLE
 // Set to true to always start at welcome screen for testing

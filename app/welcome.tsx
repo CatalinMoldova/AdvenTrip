@@ -153,7 +153,7 @@ export default function WelcomeScreen() {
             { backgroundColor: pressed ? '#000000' : '#161616' }
           ]}
           onPressIn={handleButtonPressIn}
-          onPress={() => router.push('/signup')}
+          onPress={() => router.replace('/signup')}
         >
           <ThemedText style={styles.buttonText}>
             Get Started

@@ -7,7 +7,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, View, useColorScheme } from 'react-native';
+import { Alert, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
 
 
 const SignUp = () => {
@@ -24,8 +24,12 @@ const SignUp = () => {
 
   const handleSignUp = async () => {
     // Here you'll add your signup logic
+    if (!username.trim() || !password.trim() || !email.trim() || !name.trim()) {
+      Alert.alert('Sign up', 'Please fill in all fields');
+      return;
+    }
+
     setLoading(true);
-    
     // Example: API call
     // try {
     //   await signUp({ name, email, password });
@@ -74,7 +78,7 @@ const SignUp = () => {
             }
           />
 
-        <ThemedInput
+        {/* <ThemedInput
             label="User Name"
             placeholder="Enter a username"
             value={name}
@@ -87,7 +91,7 @@ const SignUp = () => {
                 color={isDark ? '#8E8E93' : '#8E8E93'}
               />
             }
-          />
+          /> */}
 
           <ThemedInput
             label="Email"
@@ -170,7 +174,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'top',
+    alignItems: 'center',
     paddingVertical: 20,
   },
   footerText: {
