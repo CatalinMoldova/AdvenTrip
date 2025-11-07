@@ -1,9 +1,9 @@
 import { AuthScreenWrapper } from '@/components/auth-screen-wrapper';
-import BackButton from '@/components/BackButton';
 import { ThemedButton } from '@/components/themed-button';
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { supabase } from '@/lib/supabase';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -24,33 +24,55 @@ const SignUp = () => {
 
   const handleSignUp = async () => {
     // Here you'll add your signup logic
-    if (!username.trim() || !password.trim() || !email.trim() || !name.trim()) {
-      Alert.alert('Sign up', 'Please fill in all fields');
+    if (!password.trim() || !email.trim() || !name.trim()) {
+      Alert.alert('Sign up Error', 'Please fill in all fields');
       return;
     }
 
+    let nameCleaned = name.trim();
+    let emailCleaned = email.trim();
+    let passwordCleaned = password.trim();
+
     setLoading(true);
-    // Example: API call
-    // try {
-    //   await signUp({ name, email, password });
-    //   router.replace('/(tabs)');
-    // } catch (error) {
-    //   console.error('Signup error:', error);
-    // }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    console.log('Signing up with:', { name, email, password });
-    
-    // Simulate API call
-    setTimeout(() => {
+
+
+    const {data : { session }, error} = await supabase.auth.signUp({
+      email: emailCleaned,
+      password: passwordCleaned,
+      options: {
+        data: {
+          name: nameCleaned,
+        },
+      }
+    });
+
+    // log the session and error (if there is one)
+    // console.log('session: ', session);
+    // console.log('error: ', error);
+
+    if (error) {
+      Alert.alert('Sign up Error', error.message);
       setLoading(false);
-      router.navigate('/(tabs)');
-    }, 2000);
+      return;
+    }
+
+    setLoading(false);
+    // Auth state listener in _layout.tsx will handle navigation to onboarding or home
+    // console.log('Signing up with:', { name, email, password });
+
+
+    // Simulate API call
+    // setTimeout(() => {
+    //   setLoading(false);
+    //   router.navigate('/(tabs)');
+    // }, 2000);
   };
 
   return (
     <AuthScreenWrapper>
       <View style={styles.container}>
-        <BackButton router={router} />
+        {/* <BackButton router={router} /> */}
         
         {/* Welcome text */}
         <ThemedText type="title" style={styles.title}>
@@ -140,7 +162,7 @@ const SignUp = () => {
           <ThemedText style={styles.footerText}>
             Already have an account?{' '}
           </ThemedText>
-          <Pressable onPress={() => router.push('/login')}>
+          <Pressable onPress={() => router.replace('/login')}>
             <ThemedText style={styles.loginLink}>Log In</ThemedText>
           </Pressable>
         </View>
@@ -159,6 +181,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,
+    marginTop: 40,
   },
   subtitle: {
     fontSize: 16,

@@ -1,9 +1,9 @@
 import { AuthScreenWrapper } from '@/components/auth-screen-wrapper';
-import BackButton from '@/components/BackButton';
 import { ThemedButton } from '@/components/themed-button';
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { supabase } from '@/lib/supabase';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -14,7 +14,7 @@ const Login = () => {
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
 
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -23,28 +23,49 @@ const Login = () => {
       // here you'll add your log in logic
 
       // if the email or password is missing, alert the user to try again
-      if (!username.trim() || !password.trim()) {
+      if (!email.trim() || !password.trim()) {
           Alert.alert('Login', 'Please fill all the fields!');
           return;
       }
-      // good to go
-      setLoading(true);
 
+      let emailCleaned = email.trim();
+      let passwordCleaned = password.trim();
+
+      setLoading(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      console.log('Signing in with:', {username, password});
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: emailCleaned,
+        password: passwordCleaned,
+      });
+
+      console.log('error: ', error);
+
+      if (error) {
+        Alert.alert('Login', error.message);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(false);
+      router.replace('/(tabs)');
+
+
+
+      // console.log('Signing in with:', {email, password});
 
       // simulate API call
-      setTimeout(() => {
-        setLoading(false);
-        router.navigate('/(tabs)');
-      }, 2000); 
+      // setTimeout(() => {
+      //   setLoading(false);
+      //   router.navigate('/(tabs)');
+      // }, 2000); 
     };
 
 
   return (
     <AuthScreenWrapper>
       <View style={styles.container}>
-        <BackButton router={router}/>
+        {/* <BackButton router={router}/> */}
         <ThemedText type="title" style={styles.title}>
           Welcome Back
         </ThemedText>
@@ -55,10 +76,10 @@ const Login = () => {
         {/* Your login form will go here */}
         <View style={styles.form}>
             <ThemedInput
-                label="Email or Username"
-                placeholder="Enter your email or username"
-                value={username}
-                onChangeText={setUsername}
+                label="Email"
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
                 autoCapitalize="none"
                 autoComplete="email"
                 icon={<IconSymbol name="envelope.fill" size={20} color={isDark ? '#8E8E93' : '#8E8E93'} />}
@@ -83,7 +104,7 @@ const Login = () => {
           <ThemedText style={styles.footerText}>
             Don't have an account? {' '}
           </ThemedText>
-          <Pressable onPress={() => router.push('/signup')}>
+          <Pressable onPress={() => router.replace('/signup')}>
             <ThemedText style={styles.signUpLink}>Sign Up</ThemedText>
           </Pressable>
         </View>
@@ -102,6 +123,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,
+    marginTop: 40,
   },
   subtitle: {
     fontSize: 16,

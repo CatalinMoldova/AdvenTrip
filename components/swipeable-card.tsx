@@ -1,5 +1,6 @@
+import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
@@ -9,7 +10,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
@@ -146,8 +146,9 @@ export function SwipeableCard({
 const styles = StyleSheet.create({
   cardContainer: {
     position: 'absolute',
-    width: SCREEN_WIDTH - 40,
-    height: SCREEN_HEIGHT * 0.65,
+    width: SCREEN_WIDTH - 32,
+    height: SCREEN_HEIGHT * 0.72,
+    top: 64,
   },
   card: {
     flex: 1,

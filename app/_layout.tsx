@@ -1,73 +1,138 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
-import openDatabaseSync from 'expo-sqlite/kv-store';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import 'react-native-reanimated';
-
+import { SplashScreen } from '@/components/splash-screen';
 import { UserProvider } from '@/contexts/UserContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { supabase } from '@/lib/supabase';
+import { getUserData } from '@/services/userService';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Session } from '@supabase/supabase-js';
+import { useFonts } from 'expo-font';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import * as SplashScreenExpo from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-reanimated';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import '../global.css';
 
-// 🚧 DEVELOPMENT MODE TOGGLE
-// Set to true to always start at welcome screen for testing
-// Set to false for production behavior (normal onboarding flow)
-const DEV_MODE_ALWAYS_SHOW_WELCOME = true;
+// Keep the splash screen visible while we fetch resources
+SplashScreenExpo.preventAutoHideAsync();
 
-export default function RootLayout() {
+const _layout = () => {
+  return (
+    <AuthProvider>
+      <RootLayout />
+    </AuthProvider>
+  )
+}
+
+
+const RootLayout = () => {
   const colorScheme = useColorScheme();
-  const [isReady, setIsReady] = useState(false);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const router = useRouter();
   const segments = useSegments();
-  const hasNavigated = useRef(false);
+  const {setAuth, setUserData, user} = useAuth();
+  
+  const [authLoading, setAuthLoading] = useState(true);
+  
+  // Load custom fonts
+  const [fontsLoaded, fontError] = useFonts({
+    'NewSpirit': require('../assets/fonts/New-Spirit.otf'),
+    'NewSpirit-SemiBold': require('../assets/fonts/New-Spirit-Semi-Bold.otf'),
+    // Add other font weights if you have them:
+    // 'NewSpirit-Bold': require('../assets/fonts/NewSpirit-Bold.ttf'),
+  });
 
   useEffect(() => {
-    // Check if user has completed onboarding
-    const checkOnboarding = async () => {
+    // Check for existing session on app start
+    const checkSession = async () => {
       try {
-        const completed = await openDatabaseSync.getItem('hasCompletedOnboarding');
-        setHasCompletedOnboarding(completed === 'true');
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session check:', session?.user?.id);
+        setAuth(session);
       } catch (error) {
-        console.error('Error checking onboarding status:', error);
+        console.error('Error checking session:', error);
       } finally {
-        setIsReady(true);
+        // Give a small delay for smooth transition
+        setTimeout(() => {
+          setAuthLoading(false);
+        }, 1000);
       }
     };
 
-    checkOnboarding();
+    checkSession();
+
+    // Set up auth state listener for subsequent changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event, session?.user?.id);
+      setAuth(session);
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
+  const updateUserData = async (user: Session['user'] | undefined) => {
+    if (!user?.id) return;
+    
+    let res = await getUserData(user.id);
+    // console.log('got user data:', res);
+    if (res.success) setUserData(res.data);
+    return res;
+  }
+
+  // Handle navigation based on auth state
   useEffect(() => {
-    if (!isReady || hasNavigated.current) return;
+    if (authLoading) return; // Don't navigate while checking auth
 
-    const inTabsGroup = segments[0] === '(tabs)';
-    const onWelcome = segments[0] === 'welcome';
+    const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup' || segments[0] === 'welcome';
+    const inOnboarding = segments[0] === 'onboarding';
+    const isOnboardingLoading = segments[1] === 'loading';
 
-    if (DEV_MODE_ALWAYS_SHOW_WELCOME) {
-      // 🚧 DEVELOPMENT MODE: Always start at welcome screen
-      if (!onWelcome) {
-        router.replace('/welcome');
-        hasNavigated.current = true;
+    if (user) {
+      // User is authenticated
+      if (inAuthGroup) {
+        // Coming from auth screens - check onboarding status
+        const checkOnboardingStatus = async () => {
+          const userData = await updateUserData(user.user);
+          
+          // If user hasn't completed onboarding (or no user data exists yet), send to onboarding
+          // New signups won't have a users table row yet, so treat that as not completed
+          if (!userData?.success || !userData.data || !userData.data?.onboarding_completed) {
+            router.replace('/onboarding/location');
+          } else {
+            // User has completed onboarding, go to home
+            router.replace('/(tabs)');
+          }
+        };
+        
+        checkOnboardingStatus();
+      }
+      // If already in onboarding (including loading screen), let them continue
+      // Don't redirect if they're on the loading screen
+      if (isOnboardingLoading) {
+        return; // Let the loading screen handle its own navigation
       }
     } else {
-      // 📱 PRODUCTION MODE: Normal onboarding flow
-      // Redirect to welcome if not completed onboarding and not already on welcome
-      if (!hasCompletedOnboarding && !onWelcome) {
+      // User is not authenticated - redirect to welcome if trying to access app
+      if (!inAuthGroup && !inOnboarding && segments[0] !== 'modal') {
         router.replace('/welcome');
-        hasNavigated.current = true;
-      } 
-      // Redirect to tabs if completed onboarding and on welcome
-      else if (hasCompletedOnboarding && onWelcome) {
-        router.replace('/(tabs)');
-        hasNavigated.current = true;
       }
     }
-  }, [isReady, hasCompletedOnboarding, segments]);
+  }, [user, segments, authLoading]);
 
-  if (!isReady) {
-    return null; // Or return a splash screen component
+  // Hide splash screen once fonts are loaded
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreenExpo.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  // Show splash screen while checking authentication or loading fonts
+  if (authLoading || !fontsLoaded) {
+    return <SplashScreen />;
   }
 
   return (
@@ -78,13 +143,29 @@ export default function RootLayout() {
             <Stack.Screen name="welcome" options={{ headerShown: false }} />
             <Stack.Screen name="signup" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding/location" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding/interests" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding/loading" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen 
               name="edit-profile" 
               options={{ 
-                presentation: 'modal', 
                 headerShown: false,
-                animation: 'slide_from_bottom'
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="settings" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="trip-detail" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
               }} 
             />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
@@ -95,3 +176,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default _layout;

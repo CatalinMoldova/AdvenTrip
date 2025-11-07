@@ -2,93 +2,125 @@ import { SwipeableCard } from '@/components/swipeable-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { getOptimizedImageUrl, getRandomUnsplashPhoto } from '@/utils/unsplash';
+import { getPosts } from '@/services/postsService';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, StyleSheet, View } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Sample trip data with Unsplash search queries
-const INITIAL_TRIPS = [
-  {
-    id: 1,
-    title: 'Tokyo Adventure',
-    location: 'Tokyo, Japan',
-    description: 'Explore ancient temples and modern city life',
-    duration: '7 days',
-    gradient: ['#ff6b6b', '#ee5a6f'] as const,
-    searchQuery: 'Tokyo Japan temples skyline',
-  },
-  {
-    id: 2,
-    title: 'Paris Getaway',
-    location: 'Paris, France',
-    description: 'Experience the city of lights and romance',
-    duration: '5 days',
-    gradient: ['#4facfe', '#00f2fe'] as const,
-    searchQuery: 'Paris Eiffel Tower city',
-  },
-  {
-    id: 3,
-    title: 'Bali Retreat',
-    location: 'Bali, Indonesia',
-    description: 'Relax on pristine beaches and lush rice terraces',
-    duration: '10 days',
-    gradient: ['#43e97b', '#38f9d7'] as const,
-    searchQuery: 'Bali beach rice terraces',
-  },
-  {
-    id: 4,
-    title: 'New York Explorer',
-    location: 'New York, USA',
-    description: 'Discover the city that never sleeps',
-    duration: '4 days',
-    gradient: ['#fa709a', '#fee140'] as const,
-    searchQuery: 'New York City Manhattan skyline',
-  },
-  {
-    id: 5,
-    title: 'Safari Adventure',
-    location: 'Serengeti, Tanzania',
-    description: 'Witness the great wildlife migration',
-    duration: '8 days',
-    gradient: ['#ffa751', '#ffe259'] as const,
-    searchQuery: 'Tanzania safari wildlife savanna',
-  },
-];
+// Gradient colors for cards (cycling through)
+const GRADIENT_COLORS = [
+  ['#ff6b6b', '#ee5a6f'],
+  ['#4facfe', '#00f2fe'],
+  ['#43e97b', '#38f9d7'],
+  ['#fa709a', '#fee140'],
+  ['#ffa751', '#ffe259'],
+  ['#667eea', '#764ba2'],
+  ['#f093fb', '#f5576c'],
+  ['#4facfe', '#00f2fe'],
+] as const;
+
+interface Post {
+  id: string;
+  title: string;
+  destination: string;
+  caption: string;
+  trip_length: string;
+  trip_budget?: string;
+  image_links: string[] | null;
+  user_id: string;
+  users?: {
+    name?: string;
+    location?: string;
+  };
+}
+
+interface TripCard {
+  id: string;
+  title: string;
+  location: string;
+  description: string;
+  duration: string;
+  budget?: string;
+  gradient: readonly [string, string];
+  imageUri?: string;
+  // Full post data for detail screen
+  postData: Post;
+}
 
 export default function HomeScreen() {
-  const [cards, setCards] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeProgress, setSwipeProgress] = useState(0);
+  const [trips, setTrips] = useState<TripCard[]>([]);
   const [loading, setLoading] = useState(true);
+  // Track current image index for each card (by card id)
+  const [cardImageIndices, setCardImageIndices] = useState<Record<string, number>>({});
 
-  // Fetch images from Unsplash on mount
   useEffect(() => {
-    async function loadImages() {
-      setLoading(true);
-      
-      const tripsWithImages = await Promise.all(
-        INITIAL_TRIPS.map(async (trip) => {
-          const photo = await getRandomUnsplashPhoto(trip.searchQuery);
-          const imageUrl = photo ? getOptimizedImageUrl(photo) : null;
-          
-          return {
-            ...trip,
-            image: imageUrl ? { uri: imageUrl } : require('@/assets/images/react-logo.png'),
-            unsplashPhoto: photo, // Store photo data for attribution
-          };
-        })
-      );
+    fetchPosts();
+  }, []);
 
-      setCards(tripsWithImages);
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      const result = await getPosts(50);
+      if (result.success && result.data) {
+        // Transform posts into trip cards
+        const transformedTrips: TripCard[] = result.data.map((post: Post, index: number) => {
+          // Get first image from image_links JSONB array
+          let imageUri: string | undefined;
+          if (post.image_links) {
+            if (Array.isArray(post.image_links)) {
+              imageUri = post.image_links[0] || undefined;
+            } else if (typeof post.image_links === 'object' && 'images' in post.image_links) {
+              // Handle object format with images array
+              const images = (post.image_links as any).images;
+              imageUri = Array.isArray(images) && images.length > 0 ? images[0] : undefined;
+            }
+          }
+
+          // Get location from destination or user location
+          const location = post.destination || post.users?.location || 'Unknown Location';
+          
+          // Get description from caption
+          const description = post.caption || '';
+
+          // Get duration from trip_length
+          const duration = post.trip_length || '';
+
+          // Get budget from trip_budget
+          const budget = post.trip_budget || undefined;
+
+          // Cycle through gradient colors
+          const gradient = GRADIENT_COLORS[index % GRADIENT_COLORS.length];
+
+          return {
+            id: post.id,
+            title: post.title || 'Untitled Trip',
+            location,
+            description,
+            duration,
+            budget,
+            gradient,
+            imageUri,
+            postData: post, // Store full post data
+          };
+        });
+
+        setTrips(transformedTrips);
+      } else {
+        console.error('Failed to fetch posts:', result.msg);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
       setLoading(false);
     }
-
-    loadImages();
-  }, []);
+  };
 
   const handleSwipeLeft = () => {
     console.log('Swiped left (Pass)');
@@ -110,14 +142,60 @@ export default function HomeScreen() {
     setSwipeProgress(progress);
   };
 
-  const visibleCards = cards.slice(currentIndex, currentIndex + 3);
+  // Get all images for a card
+  const getCardImages = (card: TripCard): string[] => {
+    if (!card.postData.image_links) return [];
+    if (Array.isArray(card.postData.image_links)) {
+      return card.postData.image_links;
+    }
+    if (typeof card.postData.image_links === 'object' && 'images' in card.postData.image_links) {
+      return (card.postData.image_links as any).images || [];
+    }
+    return [];
+  };
 
-  // Show loading state
+  // Get current image for a card
+  const getCurrentImage = (card: TripCard): string | undefined => {
+    const images = getCardImages(card);
+    if (images.length === 0) return undefined;
+    const imageIndex = cardImageIndices[card.id] || 0;
+    return images[imageIndex];
+  };
+
+  // Navigate to next/previous image
+  const navigateImage = (cardId: string, direction: 'next' | 'prev') => {
+    const card = trips.find(t => t.id === cardId);
+    if (!card) return;
+    
+    const images = getCardImages(card);
+    if (images.length <= 1) return;
+    
+    const currentIndex = cardImageIndices[cardId] || 0;
+    let newIndex: number;
+    
+    if (direction === 'next') {
+      newIndex = (currentIndex + 1) % images.length;
+    } else {
+      newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+    }
+    
+    setCardImageIndices(prev => ({ ...prev, [cardId]: newIndex }));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  // Navigate to trip detail screen
+  const handleCardInfoTap = (card: TripCard) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push(`/trip-detail?tripId=${card.id}` as any);
+  };
+
+  const visibleCards = trips.slice(currentIndex, currentIndex + 3);
+
   if (loading) {
     return (
       <ThemedView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007aff" />
+          <ActivityIndicator size="large" />
           <ThemedText style={styles.loadingText}>Loading trips...</ThemedText>
         </View>
       </ThemedView>
@@ -126,62 +204,129 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <ThemedText type="title" style={styles.headerTitle}>
-          Discover Trips
-        </ThemedText>
-        {/* <ThemedText style={styles.headerSubtitle}>
-          Swipe right to save • Swipe left to pass
-        </ThemedText> */}
-      </View>
-
       {/* Card Stack */}
       <View style={styles.cardStack}>
+        {/* Title Overlay - Centered over card */}
+        {visibleCards.length > 0 && (
+          <View style={styles.titleOverlay}>
+            {/* <Text style={styles.headerTitle}>
+              Discover Trips
+            </Text> */}
+          </View>
+        )}
         {visibleCards.length > 0 ? (
-          visibleCards.map((card, index) => (
-            <SwipeableCard
-              key={card.id}
-              index={index}
-              totalCards={visibleCards.length}
-              onSwipeLeft={index === 0 ? handleSwipeLeft : undefined}
-              onSwipeRight={index === 0 ? handleSwipeRight : undefined}
-              onSwipeProgress={index === 0 ? handleSwipeProgress : undefined}
-            >
-              <LinearGradient
-                colors={card.gradient}
-                style={styles.cardGradient}
+          visibleCards.map((card, index) => {
+            const currentImage = getCurrentImage(card);
+            const images = getCardImages(card);
+            const hasMultipleImages = images.length > 1;
+            
+            return (
+              <SwipeableCard
+                key={card.id}
+                index={index}
+                totalCards={visibleCards.length}
+                onSwipeLeft={index === 0 ? handleSwipeLeft : undefined}
+                onSwipeRight={index === 0 ? handleSwipeRight : undefined}
+                onSwipeProgress={index === 0 ? handleSwipeProgress : undefined}
               >
-                <Image
-                  source={card.image}
-                  style={styles.cardImage}
-                  contentFit="cover"
-                />
                 <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.8)']}
-                  style={styles.cardOverlay}
+                  colors={card.gradient}
+                  style={styles.cardGradient}
                 >
-                  <View style={styles.cardContent}>
-                    <ThemedText style={styles.cardTitle}>{card.title}</ThemedText>
-                    <View style={styles.locationRow}>
-                      <IconSymbol name="mappin" size={16} color="#fff" />
-                      <ThemedText style={styles.cardLocation}>{card.location}</ThemedText>
-                    </View>
-                    <ThemedText style={styles.cardDescription}>
-                      {card.description}
-                    </ThemedText>
-                    <View style={styles.durationBadge}>
-                      <IconSymbol name="clock" size={14} color="#fff" />
-                      <ThemedText style={styles.durationText}>{card.duration}</ThemedText>
-                    </View>
+                  {/* Image area with left/right tap zones */}
+                  <View style={styles.imageContainer}>
+                    {currentImage ? (
+                      <Image
+                        source={{ uri: currentImage }}
+                        style={styles.cardImage}
+                        contentFit="cover"
+                        placeholderContentFit="cover"
+                      />
+                    ) : (
+                      <View style={[styles.cardImage, styles.placeholderImage]} />
+                    )}
+                    
+                    {/* Left tap zone for previous image */}
+                    {hasMultipleImages && index === 0 && (
+                      <Pressable
+                        style={styles.imageTapZoneLeft}
+                        onPress={() => navigateImage(card.id, 'prev')}
+                      />
+                    )}
+                    
+                    {/* Right tap zone for next image */}
+                    {hasMultipleImages && index === 0 && (
+                      <Pressable
+                        style={styles.imageTapZoneRight}
+                        onPress={() => navigateImage(card.id, 'next')}
+                      />
+                    )}
+                    
+                    {/* Image indicator dots */}
+                    {hasMultipleImages && index === 0 && images.length > 1 && (
+                      <View style={styles.imageIndicatorContainer}>
+                        {images.map((_, imgIndex) => (
+                          <View
+                            key={imgIndex}
+                            style={[
+                              styles.imageIndicatorDot,
+                              (cardImageIndices[card.id] || 0) === imgIndex && styles.imageIndicatorDotActive
+                            ]}
+                          />
+                        ))}
+                      </View>
+                    )}
                   </View>
+                  
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.8)']}
+                    style={styles.cardOverlay}
+                  >
+                    {/* Info section - tappable to navigate to detail */}
+                    <Pressable
+                      style={styles.cardContent}
+                      onPress={() => index === 0 && handleCardInfoTap(card)}
+                    >
+                      <ThemedText style={styles.cardTitle}>{card.title}</ThemedText>
+                      <View style={styles.locationRow}>
+                        <IconSymbol name="mappin" size={16} color="#fff" />
+                        <ThemedText style={styles.cardLocation}>{card.location}</ThemedText>
+                      </View>
+                      {card.description && (
+                        <ThemedText style={styles.cardDescription}>
+                          {card.description}
+                        </ThemedText>
+                      )}
+                      <View style={styles.badgesRow}>
+                        {card.duration && (
+                          <View style={styles.durationBadge}>
+                            <IconSymbol name="clock" size={14} color="#fff" />
+                            <ThemedText style={styles.durationText}>
+                              {(() => {
+                                const durationStr = String(card.duration);
+                                return durationStr.toLowerCase().includes('day') 
+                                  ? durationStr 
+                                  : `${durationStr} days`;
+                              })()}
+                            </ThemedText>
+                          </View>
+                        )}
+                        {card.budget && (
+                          <View style={styles.budgetBadge}>
+                            <IconSymbol name="dollarsign.circle" size={14} color="#fff" />
+                            <ThemedText style={styles.budgetText}>{card.budget}</ThemedText>
+                          </View>
+                        )}
+                      </View>
+                    </Pressable>
+                  </LinearGradient>
                 </LinearGradient>
-              </LinearGradient>
-            </SwipeableCard>
-          ))
+              </SwipeableCard>
+            );
+          })
         ) : (
           <View style={styles.emptyState}>
-            <ThemedText style={styles.emptyText}>No more trips!</ThemedText>
+            <ThemedText style={styles.emptyText}>No trips available</ThemedText>
             <ThemedText style={styles.emptySubtext}>Check back later for new adventures</ThemedText>
           </View>
         )}
@@ -193,49 +338,66 @@ export default function HomeScreen() {
           <View style={styles.sliderTrack}>
             {/* Pass Side (Left) */}
             <View style={styles.sliderSide}>
-              <IconSymbol name="xmark" size={20} color="#ff6b6b" />
+              <IconSymbol name="xmark" size={16} color="#ff6b6b" />
               <ThemedText style={styles.sliderLabel}>Pass</ThemedText>
             </View>
             
             {/* Progress Bar */}
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBar}>
-                {/* Negative (left) progress */}
-                {swipeProgress < 0 && (
-                  <View 
-                    style={[
-                      styles.progressFillLeft,
-                      { width: `${Math.abs(swipeProgress) * 100}%` }
-                    ]} 
-                  />
-                )}
-                {/* Positive (right) progress */}
-                {swipeProgress > 0 && (
-                  <View 
-                    style={[
-                      styles.progressFillRight,
-                      { width: `${swipeProgress * 100}%` }
-                    ]} 
-                  />
-                )}
-                {/* Center indicator */}
-                <View 
-                  style={[
-                    styles.progressIndicator,
-                    { 
-                      left: `${(swipeProgress + 1) * 50}%`,
-                      backgroundColor: swipeProgress < -0.3 ? '#ff6b6b' 
-                        : swipeProgress > 0.3 ? '#4facfe' 
-                        : '#666'
-                    }
-                  ]} 
-                />
+                {/* Calculate indicator position (0% to 100%) */}
+                {(() => {
+                  const indicatorPosition = (swipeProgress + 1) * 50;
+                  const isLeft = swipeProgress < 0;
+                  const isRight = swipeProgress > 0;
+                  
+                  return (
+                    <>
+                      {/* Left fill - only extends from center to indicator when swiping left */}
+                      {isLeft && (
+                        <View 
+                          style={[
+                            styles.progressFillLeft,
+                            { 
+                              width: `${50 - indicatorPosition}%`,
+                              left: `${indicatorPosition}%`
+                            }
+                          ]} 
+                        />
+                      )}
+                      {/* Right fill - only extends from center to indicator when swiping right */}
+                      {isRight && (
+                        <View 
+                          style={[
+                            styles.progressFillRight,
+                            { 
+                              width: `${indicatorPosition - 50}%`,
+                              left: '50%'
+                            }
+                          ]} 
+                        />
+                      )}
+                      {/* Center indicator */}
+                      <View 
+                        style={[
+                          styles.progressIndicator,
+                          { 
+                            left: `${indicatorPosition}%`,
+                            backgroundColor: swipeProgress < -0.3 ? '#ff6b6b' 
+                              : swipeProgress > 0.3 ? '#4facfe' 
+                              : '#999'
+                          }
+                        ]} 
+                      />
+                    </>
+                  );
+                })()}
               </View>
             </View>
 
             {/* Like Side (Right) */}
             <View style={styles.sliderSide}>
-              <IconSymbol name="heart.fill" size={20} color="#4facfe" />
+              <IconSymbol name="heart.fill" size={16} color="#4facfe" />
               <ThemedText style={styles.sliderLabel}>Save</ThemedText>
             </View>
           </View>
@@ -248,27 +410,24 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  titleOverlay: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    fontSize: 16,
-    opacity: 0.6,
-  },
-  header: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    zIndex: 100,
+    pointerEvents: 'none',
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    marginTop: 20,
+    fontSize: 24,
+    fontWeight: 'semibold',
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+    color: '#fff',
   },
   headerSubtitle: {
     fontSize: 14,
@@ -278,112 +437,194 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   cardGradient: {
     flex: 1,
-    borderRadius: 20,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  cardImage: {
+  imageContainer: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    borderRadius: 20,
+    borderRadius: 24,
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
+  },
+  imageTapZoneLeft: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: '50%',
+    height: '60%', // Above the info section
+    zIndex: 5,
+  },
+  imageTapZoneRight: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: '50%',
+    height: '60%', // Above the info section
+    zIndex: 5,
+  },
+  imageIndicatorContainer: {
+    position: 'absolute',
+    top: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    zIndex: 10,
+  },
+  imageIndicatorDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  imageIndicatorDotActive: {
+    backgroundColor: '#fff',
+    width: 20,
   },
   cardOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    padding: 20,
-    borderRadius: 20,
+    padding: 24,
+    borderRadius: 24,
   },
   cardContent: {
-    gap: 8,
+    gap: 10,
+    minHeight: 120, // Ensure tap target is large enough
   },
   cardTitle: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
-    lineHeight: 28,
+    lineHeight: 36,
+    fontFamily: 'NewSpirit-SemiBold',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    marginTop: 4,
   },
   cardLocation: {
-    fontSize: 16,
+    fontSize: 17,
     color: '#fff',
-    opacity: 0.9,
+    opacity: 0.95,
+    fontWeight: '500',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#fff',
-    opacity: 0.8,
-    marginTop: 4,
+    opacity: 0.85,
+    marginTop: 6,
+    lineHeight: 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+    flexWrap: 'wrap',
   },
   durationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginTop: 8,
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   durationText: {
-    fontSize: 12,
+    fontSize: 13,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  budgetBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  budgetText: {
+    fontSize: 13,
     color: '#fff',
     fontWeight: '600',
   },
   sliderContainer: {
-    paddingHorizontal: 10,
-    paddingBottom: 20,
-    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    paddingTop: 12,
+    backgroundColor: 'transparent',
   },
   sliderTrack: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
   sliderSide: {
     alignItems: 'center',
     gap: 4,
-    width: 60,
+    width: 56,
   },
   sliderLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     opacity: 0.7,
   },
   progressBarContainer: {
     flex: 1,
-    height: 8,
+    height: 6,
   },
   progressBar: {
     flex: 1,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 4,
-    overflow: 'hidden',
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    borderRadius: 3,
+    overflow: 'visible',
     position: 'relative',
     justifyContent: 'center',
+    height: 6,
   },
   progressFillLeft: {
     position: 'absolute',
-    right: '50%',
     height: '100%',
     backgroundColor: '#ff6b6b',
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
+    borderTopLeftRadius: 3,
+    borderBottomLeftRadius: 3,
   },
   progressFillRight: {
     position: 'absolute',
-    left: '50%',
     height: '100%',
     backgroundColor: '#4facfe',
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
   },
   progressIndicator: {
     position: 'absolute',
@@ -394,10 +635,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
+    zIndex: 10,
   },
   emptyState: {
     alignItems: 'center',
@@ -413,5 +655,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.6,
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 100,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.6,
+  },
+  placeholderImage: {
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
 });

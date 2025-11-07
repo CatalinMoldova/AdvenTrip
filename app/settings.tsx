@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -353,3 +353,4 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 });
+
