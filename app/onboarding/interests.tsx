@@ -1,6 +1,6 @@
 import { ThemedButton } from '@/components/themed-button';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { updateUserProfile } from '@/services/userService';
 import { TRAVEL_PREFERENCES } from '@/types/user';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -47,19 +47,23 @@ const InterestsOnboarding = () => {
         return;
       }
 
-      // Update user profile in Supabase with location and travel preferences
-      const { error } = await supabase
-        .from('users')
-        .update({
-          location: city,
-          travel_preferences: selectedInterests,
-          onboarding_completed: true,
-        })
-        .eq('id', userId);
+      // Update user profile using the service function
+      // Save to both travel_preferences (for database) and interests (for profile page)
+      const result = await updateUserProfile(userId, {
+        location: city,
+        travel_preferences: selectedInterests,
+        interests: selectedInterests, // Also save to interests field for profile page
+        onboarding_completed: true,
+      });
 
-      if (error) {
-        console.error('Error updating profile:', error);
-        Alert.alert('Error', 'Failed to save your preferences. Please try again.');
+      if (!result.success) {
+        console.error('Error updating profile:', result.msg);
+        const errorMessage = result.msg || 'Failed to save your preferences. Please try again.';
+        Alert.alert(
+          'Error', 
+          errorMessage,
+          [{ text: 'OK' }]
+        );
         setLoading(false);
         return;
       }

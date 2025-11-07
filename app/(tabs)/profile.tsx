@@ -1,16 +1,17 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { getUserData } from '@/services/userService';
 import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { user } = useAuth();
+  const { user, setAuth } = useAuth();
   
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -82,11 +83,46 @@ export default function ProfileScreen() {
     router.push('/edit-profile');
   };
 
+  // Handle sign out
+  const handleSignOut = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase.auth.signOut();
+              if (error) {
+                Alert.alert('Error', 'Failed to sign out. Please try again.');
+              } else {
+                setAuth(null);
+                // Auth listener in _layout.tsx will automatically redirect to welcome
+              }
+            } catch (error) {
+              console.error('Error signing out:', error);
+              Alert.alert('Error', 'Something went wrong. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Get user's name from auth metadata or database
   const userName = userData?.name || user?.user?.user_metadata?.name || user?.user?.email?.split('@')[0] || 'User';
   const userLocation = userData?.location || '';
   // Parse interests from JSONB - handle both array and string formats
-  const userInterests = parseJsonbArray(userData?.interests);
+  // Check both interests and travel_preferences fields
+  const userInterests = parseJsonbArray(userData?.interests || userData?.travel_preferences);
 
   return (
     <View style={styles.outerContainer}>
@@ -187,6 +223,21 @@ export default function ProfileScreen() {
                   </View>
                 </View>
               )}
+
+              {/* Sign Out Button */}
+              <View style={styles.section}>
+                <Pressable
+                  onPress={handleSignOut}
+                  style={({ pressed }) => [
+                    styles.signOutButton,
+                    { opacity: pressed ? 0.7 : 1 },
+                    { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' },
+                  ]}
+                >
+                  <IconSymbol name="rectangle.portrait.and.arrow.right" size={20} color="#FF3B30" />
+                  <Text style={[styles.signOutText, { color: '#FF3B30' }]}>Sign Out</Text>
+                </Pressable>
+              </View>
             </ScrollView>
           </View>
         </View>
@@ -371,5 +422,22 @@ const styles = StyleSheet.create({
   interestText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 59, 48, 0.3)',
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
