@@ -121,8 +121,7 @@ export default function ProfileScreen() {
   const userName = userData?.name || user?.user?.user_metadata?.name || user?.user?.email?.split('@')[0] || 'User';
   const userLocation = userData?.location || '';
   // Parse interests from JSONB - handle both array and string formats
-  // Check both interests and travel_preferences fields
-  const userInterests = parseJsonbArray(userData?.interests || userData?.travel_preferences);
+  const userInterests = parseJsonbArray(userData?.interests);
 
   return (
     <View style={styles.outerContainer}>

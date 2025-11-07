@@ -48,11 +48,10 @@ const InterestsOnboarding = () => {
       }
 
       // Update user profile using the service function
-      // Save to both travel_preferences (for database) and interests (for profile page)
+      // Save to interests column in the database
       const result = await updateUserProfile(userId, {
         location: city,
-        travel_preferences: selectedInterests,
-        interests: selectedInterests, // Also save to interests field for profile page
+        interests: selectedInterests,
         onboarding_completed: true,
       });
 
