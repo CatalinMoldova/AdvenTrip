@@ -5,8 +5,11 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// iOS default tab bar colors
+const tintColorLight = '#007AFF'; // iOS blue for selected tabs (light mode)
+const tintColorDark = '#0A84FF'; // iOS blue for selected tabs (dark mode)
+const tabIconDefaultLight = '#8E8E93'; // iOS gray for unselected tabs
+const tabIconDefaultDark = '#8E8E93'; // iOS gray for unselected tabs (same in dark mode)
 
 export const Colors = {
   light: {
@@ -14,7 +17,7 @@ export const Colors = {
     background: '#fff',
     tint: tintColorLight,
     icon: '#687076',
-    tabIconDefault: '#687076',
+    tabIconDefault: tabIconDefaultLight,
     tabIconSelected: tintColorLight,
   },
   dark: {
@@ -22,7 +25,7 @@ export const Colors = {
     background: '#151718',
     tint: tintColorDark,
     icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    tabIconDefault: tabIconDefaultDark,
     tabIconSelected: tintColorDark,
   },
 };
