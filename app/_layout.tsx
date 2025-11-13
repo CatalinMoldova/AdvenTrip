@@ -168,6 +168,69 @@ const RootLayout = () => {
                 animation: 'slide_from_right'
               }} 
             />
+            <Stack.Screen 
+              name="trip-plan-detail" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="create-trip/name" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="create-trip/location" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="create-trip/activities" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="create-trip/time-period" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="create-trip/transportation" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="create-trip/days" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="create-trip/destination" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
+            <Stack.Screen 
+              name="create-trip/confirmation" 
+              options={{ 
+                headerShown: false,
+                animation: 'slide_from_right'
+              }} 
+            />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
           <StatusBar style="auto" />

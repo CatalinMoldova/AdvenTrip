@@ -5,12 +5,14 @@ import { getUserData } from '@/services/userService';
 import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { G, Path } from 'react-native-svg';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
   const { user, setAuth } = useAuth();
   
   const [userData, setUserData] = useState<any>(null);
@@ -125,7 +127,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.outerContainer}>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.container}>
           {/* Colored Banner Section */}
           <View style={styles.bannerSection}>
@@ -184,7 +186,7 @@ export default function ProfileScreen() {
             <ScrollView 
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={[styles.scrollContent, { paddingBottom: 20 + insets.bottom + 49 }]}
             >
 
               {/* Trip Plans Section */}
@@ -340,7 +342,7 @@ const styles = StyleSheet.create({
     marginTop: -10,
     paddingTop: 120,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 0,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -358,7 +360,7 @@ const styles = StyleSheet.create({
     marginTop: -10,
     paddingTop: 120,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 0,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -372,7 +374,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
     marginTop: 20, // Add padding to account for profile picture and user info section
   },
   userName: {

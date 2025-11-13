@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -53,6 +54,7 @@ interface TripCard {
 }
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [trips, setTrips] = useState<TripCard[]>([]);
@@ -334,7 +336,7 @@ export default function HomeScreen() {
 
       {/* Swipe Progress Slider */}
       {visibleCards.length > 0 && (
-        <View style={styles.sliderContainer}>
+        <View style={[styles.sliderContainer, { paddingBottom: 16 + insets.bottom + 49 }]}>
           <View style={styles.sliderTrack}>
             {/* Pass Side (Left) */}
             <View style={styles.sliderSide}>
@@ -580,8 +582,7 @@ const styles = StyleSheet.create({
   },
   sliderContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
-    paddingTop: 12,
+    paddingTop: 0,
     backgroundColor: 'transparent',
   },
   sliderTrack: {
